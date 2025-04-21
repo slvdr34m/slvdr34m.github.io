@@ -566,8 +566,7 @@
             FILL_BLANK: '填空题'
         };
         
-        // 这里应该放置从Python脚本生成的questions数组
-        // 示例题目数据
+        // 题目数据 - 确保定义在应用逻辑之前
         const questions = [
   {
     "id": 1,
@@ -15764,648 +15763,715 @@
     
     <!-- 应用逻辑 -->
     <script>
-        // DOM元素
-        const questionTypeEl = document.getElementById('questionType');
-        const questionProgressEl = document.getElementById('questionProgress');
-        const questionIdEl = document.getElementById('questionId');
-        const questionTitleEl = document.getElementById('questionTitle');
-        const optionsContainerEl = document.getElementById('optionsContainer');
-        const fillBlankContainerEl = document.getElementById('fillBlankContainer');
-        const fillBlankInputEl = document.getElementById('fillBlankInput');
-        const answerPanelEl = document.getElementById('answerPanel');
-        const correctAnswerEl = document.getElementById('correctAnswer');
-        const explanationEl = document.getElementById('explanation');
-        const prevBtnEl = document.getElementById('prevBtn');
-        const submitBtnEl = document.getElementById('submitBtn');
-        const nextBtnEl = document.getElementById('nextBtn');
-        const questionListBtnEl = document.getElementById('questionListBtn');
-        const wrongQuestionsBtnEl = document.getElementById('wrongQuestionsBtn');
-        const exportWrongBtnEl = document.getElementById('exportWrongBtn');
-        const importWrongBtnEl = document.getElementById('importWrongBtn');
-        const resetBtnEl = document.getElementById('resetBtn');
-        const questionListModalEl = document.getElementById('questionListModal');
-        const closeModalBtnEl = document.getElementById('closeModalBtn');
-        const questionListContainerEl = document.getElementById('questionListContainer');
-        const totalQuestionsEl = document.getElementById('totalQuestions');
-        const answeredQuestionsEl = document.getElementById('answeredQuestions');
-        const wrongQuestionsCountEl = document.getElementById('wrongQuestionsCount');
-        const wrongQuestionsActionsEl = document.getElementById('wrongQuestionsActions');
-        const modalExportBtnEl = document.getElementById('modalExportBtn');
-        const modalImportBtnEl = document.getElementById('modalImportBtn');
-        const importFileEl = document.getElementById('importFile');
-        const importMessageEl = document.getElementById('importMessage');
-        
-        const importModalEl = document.getElementById('importModal');
-        const closeImportModalBtnEl = document.getElementById('closeImportModalBtn');
-        const importFileInputEl = document.getElementById('importFileInput');
-        const importModalMessageEl = document.getElementById('importModalMessage');
-        const cancelImportBtnEl = document.getElementById('cancelImportBtn');
-        const confirmImportBtnEl = document.getElementById('confirmImportBtn');
-
-        // 应用状态
-        let currentQuestionIndex = 0;
-        let userAnswers = {};
-        let wrongQuestions = [];
-        let showWrongOnly = false;
-        let submitted = false;
-        
-        // 获取当前显示的题目列表（所有或仅错题）
-        function getDisplayQuestions() {
-            return showWrongOnly 
-                ? questions.filter(q => wrongQuestions.includes(q.id))
-                : questions;
-        }
-        
-        // 获取当前题目
-        function getCurrentQuestion() {
-            const displayQuestions = getDisplayQuestions();
-            return displayQuestions[currentQuestionIndex] || null;
-        }
-        
-        // 加载题目
-        function loadQuestion() {
-            const currentQuestion = getCurrentQuestion();
-            if (!currentQuestion) {
-                if (showWrongOnly && getDisplayQuestions().length === 0) {
-                    // 如果在错题模式但没有错题
-                    questionTitleEl.textContent = '目前还没有错题记录。';
-                    optionsContainerEl.innerHTML = '';
-                    fillBlankContainerEl.style.display = 'none';
-                    submitBtnEl.disabled = true;
-                    return;
-                }
-                
-                questionTitleEl.textContent = '加载题目失败。';
+        // 等待DOM完全加载后再初始化应用
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM元素
+            const questionTypeEl = document.getElementById('questionType');
+            const questionProgressEl = document.getElementById('questionProgress');
+            const questionIdEl = document.getElementById('questionId');
+            const questionTitleEl = document.getElementById('questionTitle');
+            const optionsContainerEl = document.getElementById('optionsContainer');
+            const fillBlankContainerEl = document.getElementById('fillBlankContainer');
+            const fillBlankInputEl = document.getElementById('fillBlankInput');
+            const answerPanelEl = document.getElementById('answerPanel');
+            const correctAnswerEl = document.getElementById('correctAnswer');
+            const explanationEl = document.getElementById('explanation');
+            const prevBtnEl = document.getElementById('prevBtn');
+            const submitBtnEl = document.getElementById('submitBtn');
+            const nextBtnEl = document.getElementById('nextBtn');
+            const questionListBtnEl = document.getElementById('questionListBtn');
+            const wrongQuestionsBtnEl = document.getElementById('wrongQuestionsBtn');
+            const exportWrongBtnEl = document.getElementById('exportWrongBtn');
+            const importWrongBtnEl = document.getElementById('importWrongBtn');
+            const resetBtnEl = document.getElementById('resetBtn');
+            const questionListModalEl = document.getElementById('questionListModal');
+            const closeModalBtnEl = document.getElementById('closeModalBtn');
+            const questionListContainerEl = document.getElementById('questionListContainer');
+            const totalQuestionsEl = document.getElementById('totalQuestions');
+            const answeredQuestionsEl = document.getElementById('answeredQuestions');
+            const wrongQuestionsCountEl = document.getElementById('wrongQuestionsCount');
+            const wrongQuestionsActionsEl = document.getElementById('wrongQuestionsActions');
+            const modalExportBtnEl = document.getElementById('modalExportBtn');
+            const modalImportBtnEl = document.getElementById('modalImportBtn');
+            const importFileEl = document.getElementById('importFile');
+            const importMessageEl = document.getElementById('importMessage');
+            
+            const importModalEl = document.getElementById('importModal');
+            const closeImportModalBtnEl = document.getElementById('closeImportModalBtn');
+            const importFileInputEl = document.getElementById('importFileInput');
+            const importModalMessageEl = document.getElementById('importModalMessage');
+            const cancelImportBtnEl = document.getElementById('cancelImportBtn');
+            const confirmImportBtnEl = document.getElementById('confirmImportBtn');
+    
+            // 应用状态
+            let currentQuestionIndex = 0;
+            let userAnswers = {};
+            let wrongQuestions = [];
+            let showWrongOnly = false;
+            let submitted = false;
+            
+            // 验证questions数组是否存在且有效
+            if (!Array.isArray(questions) || questions.length === 0) {
+                questionTitleEl.textContent = '题目数据加载失败，请刷新页面重试。';
+                console.error('题目数据不存在或无效');
                 return;
             }
             
-            // 设置题目类型
-            questionTypeEl.textContent = currentQuestion.type;
+            // 获取当前显示的题目列表（所有或仅错题）
+            function getDisplayQuestions() {
+                return showWrongOnly 
+                    ? questions.filter(q => wrongQuestions.includes(q.id))
+                    : questions;
+            }
             
-            // 设置题目进度
-            const displayQuestions = getDisplayQuestions();
-            questionProgressEl.textContent = `第 ${currentQuestionIndex + 1} 题 / 共 ${displayQuestions.length} 题`;
+            // 获取当前题目
+            function getCurrentQuestion() {
+                const displayQuestions = getDisplayQuestions();
+                if (displayQuestions.length === 0) return null;
+                if (currentQuestionIndex >= displayQuestions.length) {
+                    currentQuestionIndex = 0;
+                }
+                return displayQuestions[currentQuestionIndex] || null;
+            }
             
-            // 设置题号
-            questionIdEl.textContent = `题号: ${currentQuestion.id}`;
-            
-            // 设置题目标题
-            questionTitleEl.textContent = currentQuestion.title;
-            
-            // 重置提交状态
-            submitted = false;
-            submitBtnEl.style.display = '';
-            nextBtnEl.style.display = 'none';
-            answerPanelEl.style.display = 'none';
-            
-            // 清空选项容器
-            optionsContainerEl.innerHTML = '';
-            
-            // 根据题目类型渲染不同的答题界面
-            if (currentQuestion.type === QuestionTypes.FILL_BLANK) {
-                // 填空题
-                optionsContainerEl.style.display = 'none';
-                fillBlankContainerEl.style.display = 'block';
-                fillBlankInputEl.value = userAnswers[currentQuestion.id] || '';
-                fillBlankInputEl.classList.remove('correct', 'incorrect');
-                fillBlankInputEl.disabled = false;
-            } else {
-                // 选择题（单选、多选、判断）
-                optionsContainerEl.style.display = 'block';
-                fillBlankContainerEl.style.display = 'none';
-                
-                // 渲染选项
-                currentQuestion.options.forEach(option => {
-                    const optionEl = document.createElement('div');
-                    optionEl.className = 'option';
-                    
-                    if (currentQuestion.type === QuestionTypes.MULTIPLE_CHOICE) {
-                        // 多选题
-                        const userAnswer = userAnswers[currentQuestion.id] || [];
-                        const isSelected = userAnswer.includes(option.label);
-                        
-                        optionEl.innerHTML = `
-                            <input type="checkbox" class="checkbox" ${isSelected ? 'checked' : ''}>
-                            <span class="option-label">${option.label}.</span>
-                            <span>${option.text}</span>
-                        `;
-                        
-                        if (isSelected) {
-                            optionEl.classList.add('selected');
-                        }
-                        
-                        optionEl.addEventListener('click', () => {
-                            if (submitted) return;
-                            
-                            const checkbox = optionEl.querySelector('input[type="checkbox"]');
-                            checkbox.checked = !checkbox.checked;
-                            
-                            const currentSelections = userAnswers[currentQuestion.id] || [];
-                            
-                            if (checkbox.checked) {
-                                if (!currentSelections.includes(option.label)) {
-                                    saveAnswer([...currentSelections, option.label]);
-                                }
-                                optionEl.classList.add('selected');
-                            } else {
-                                saveAnswer(currentSelections.filter(label => label !== option.label));
-                                optionEl.classList.remove('selected');
-                            }
-                        });
-                    } else {
-                        // 单选题或判断题
-                        const isSelected = userAnswers[currentQuestion.id] === option.label;
-                        
-                        optionEl.innerHTML = `
-                            <span class="option-label">${option.label}.</span>
-                            <span>${option.text}</span>
-                        `;
-                        
-                        if (isSelected) {
-                            optionEl.classList.add('selected');
-                        }
-                        
-                        optionEl.addEventListener('click', () => {
-                            if (submitted) return;
-                            
-                            // 移除其他选项的选中状态
-                            document.querySelectorAll('.option').forEach(el => {
-                                el.classList.remove('selected');
-                            });
-                            
-                            // 设置当前选项为选中状态
-                            optionEl.classList.add('selected');
-                            
-                            // 保存用户答案
-                            saveAnswer(option.label);
-                        });
+            // 加载题目
+            function loadQuestion() {
+                const currentQuestion = getCurrentQuestion();
+                if (!currentQuestion) {
+                    if (showWrongOnly && getDisplayQuestions().length === 0) {
+                        // 如果在错题模式但没有错题
+                        questionTitleEl.textContent = '目前还没有错题记录。';
+                        optionsContainerEl.innerHTML = '';
+                        fillBlankContainerEl.style.display = 'none';
+                        submitBtnEl.disabled = true;
+                        return;
                     }
                     
-                    optionsContainerEl.appendChild(optionEl);
-                });
-            }
-            
-            // 更新按钮状态
-            updateButtonsState();
-        }
-        
-        // 保存用户答案
-        function saveAnswer(answer) {
-            const currentQuestion = getCurrentQuestion();
-            if (!currentQuestion) return;
-            
-            userAnswers[currentQuestion.id] = answer;
-            
-            // 保存到本地存储
-            localStorage.setItem('userAnswers', JSON.stringify(userAnswers));
-            
-            // 更新按钮状态
-            updateButtonsState();
-        }
-        
-        // 更新按钮状态
-        function updateButtonsState() {
-            const currentQuestion = getCurrentQuestion();
-            if (!currentQuestion) return;
-            
-            // 更新上一题按钮状态
-            prevBtnEl.disabled = currentQuestionIndex === 0;
-            
-            // 更新提交按钮状态
-            if (currentQuestion.type === QuestionTypes.MULTIPLE_CHOICE) {
-                submitBtnEl.disabled = !(userAnswers[currentQuestion.id] || []).length;
-            } else {
-                submitBtnEl.disabled = !userAnswers[currentQuestion.id];
-            }
-        }
-        
-        // 提交答案
-        function submitAnswer() {
-            const currentQuestion = getCurrentQuestion();
-            if (!currentQuestion) return;
-            
-            submitted = true;
-            submitBtnEl.style.display = 'none';
-            nextBtnEl.style.display = '';
-            
-            const userAnswer = userAnswers[currentQuestion.id];
-            const correctAnswer = currentQuestion.answer;
-            
-            // 显示答案和解析
-            answerPanelEl.style.display = 'block';
-            
-            if (currentQuestion.type === QuestionTypes.MULTIPLE_CHOICE) {
-                correctAnswerEl.textContent = currentQuestion.answer.join(', ');
-            } else {
-                correctAnswerEl.textContent = currentQuestion.answer;
-            }
-            
-            explanationEl.textContent = currentQuestion.explanation;
-            
-            // 检查答案是否正确
-            let isCorrect = false;
-            
-            if (currentQuestion.type === QuestionTypes.MULTIPLE_CHOICE) {
-                // 多选题：检查选择的选项是否完全匹配
-                const userSelections = userAnswer || [];
-                isCorrect = userSelections.length === correctAnswer.length &&
-                           userSelections.every(opt => correctAnswer.includes(opt));
-                           
-                // 高亮显示正确和错误选项
-                const optionEls = document.querySelectorAll('.option');
-                currentQuestion.options.forEach((option, index) => {
-                    const optionEl = optionEls[index];
-                    const isSelected = userSelections.includes(option.label);
-                    const isCorrectOption = correctAnswer.includes(option.label);
-                    
-                    if (isCorrectOption) {
-                        optionEl.classList.add('correct');
-                    } else if (isSelected) {
-                        optionEl.classList.add('incorrect');
-                    }
-                });
-            } else if (currentQuestion.type === QuestionTypes.FILL_BLANK) {
-                // 填空题：直接比较
-                isCorrect = userAnswer === correctAnswer;
+                    questionTitleEl.textContent = '加载题目失败。';
+                    return;
+                }
                 
-                // 高亮显示填空框
-                if (isCorrect) {
-                    fillBlankInputEl.classList.add('correct');
+                // 设置题目类型
+                questionTypeEl.textContent = currentQuestion.type;
+                
+                // 设置题目进度
+                const displayQuestions = getDisplayQuestions();
+                questionProgressEl.textContent = `第 ${currentQuestionIndex + 1} 题 / 共 ${displayQuestions.length} 题`;
+                
+                // 设置题号
+                questionIdEl.textContent = `题号: ${currentQuestion.id}`;
+                
+                // 设置题目标题
+                questionTitleEl.textContent = currentQuestion.title;
+                
+                // 重置提交状态
+                submitted = false;
+                submitBtnEl.style.display = '';
+                nextBtnEl.style.display = 'none';
+                answerPanelEl.style.display = 'none';
+                
+                // 清空选项容器
+                optionsContainerEl.innerHTML = '';
+                
+                // 根据题目类型渲染不同的答题界面
+                if (currentQuestion.type === QuestionTypes.FILL_BLANK) {
+                    // 填空题
+                    optionsContainerEl.style.display = 'none';
+                    fillBlankContainerEl.style.display = 'block';
+                    fillBlankInputEl.value = userAnswers[currentQuestion.id] || '';
+                    fillBlankInputEl.classList.remove('correct', 'incorrect');
+                    fillBlankInputEl.disabled = false;
                 } else {
-                    fillBlankInputEl.classList.add('incorrect');
-                }
-                
-                fillBlankInputEl.disabled = true;
-            } else {
-                // 单选题或判断题：直接比较
-                isCorrect = userAnswer === correctAnswer;
-                
-                // 高亮显示正确和错误选项
-                const optionEls = document.querySelectorAll('.option');
-                currentQuestion.options.forEach((option, index) => {
-                    const optionEl = optionEls[index];
+                    // 选择题（单选、多选、判断）
+                    optionsContainerEl.style.display = 'block';
+                    fillBlankContainerEl.style.display = 'none';
                     
-                    if (option.label === correctAnswer) {
-                        optionEl.classList.add('correct');
-                    } else if (option.label === userAnswer) {
-                        optionEl.classList.add('incorrect');
+                    // 渲染选项
+                    currentQuestion.options.forEach(option => {
+                        const optionEl = document.createElement('div');
+                        optionEl.className = 'option';
+                        
+                        if (currentQuestion.type === QuestionTypes.MULTIPLE_CHOICE) {
+                            // 多选题
+                            const userAnswer = userAnswers[currentQuestion.id] || [];
+                            const isSelected = userAnswer.includes(option.label);
+                            
+                            optionEl.innerHTML = `
+                                <input type="checkbox" class="checkbox" ${isSelected ? 'checked' : ''}>
+                                <span class="option-label">${option.label}.</span>
+                                <span>${option.text}</span>
+                            `;
+                            
+                            if (isSelected) {
+                                optionEl.classList.add('selected');
+                            }
+                            
+                            optionEl.addEventListener('click', () => {
+                                if (submitted) return;
+                                
+                                const checkbox = optionEl.querySelector('input[type="checkbox"]');
+                                checkbox.checked = !checkbox.checked;
+                                
+                                const currentSelections = userAnswers[currentQuestion.id] || [];
+                                
+                                if (checkbox.checked) {
+                                    if (!currentSelections.includes(option.label)) {
+                                        saveAnswer([...currentSelections, option.label]);
+                                    }
+                                    optionEl.classList.add('selected');
+                                } else {
+                                    saveAnswer(currentSelections.filter(label => label !== option.label));
+                                    optionEl.classList.remove('selected');
+                                }
+                            });
+                        } else {
+                            // 单选题或判断题
+                            const isSelected = userAnswers[currentQuestion.id] === option.label;
+                            
+                            optionEl.innerHTML = `
+                                <span class="option-label">${option.label}.</span>
+                                <span>${option.text}</span>
+                            `;
+                            
+                            if (isSelected) {
+                                optionEl.classList.add('selected');
+                            }
+                            
+                            optionEl.addEventListener('click', () => {
+                                if (submitted) return;
+                                
+                                // 移除其他选项的选中状态
+                                document.querySelectorAll('.option').forEach(el => {
+                                    el.classList.remove('selected');
+                                });
+                                
+                                // 设置当前选项为选中状态
+                                optionEl.classList.add('selected');
+                                
+                                // 保存用户答案
+                                saveAnswer(option.label);
+                            });
+                        }
+                        
+                        optionsContainerEl.appendChild(optionEl);
+                    });
+                }
+                
+                // 更新按钮状态
+                updateButtonsState();
+            }
+            
+            // 保存用户答案
+            function saveAnswer(answer) {
+                const currentQuestion = getCurrentQuestion();
+                if (!currentQuestion) return;
+                
+                userAnswers[currentQuestion.id] = answer;
+                
+                // 保存到本地存储
+                try {
+                    localStorage.setItem('userAnswers', JSON.stringify(userAnswers));
+                } catch (e) {
+                    console.warn('无法保存到本地存储:', e);
+                }
+                
+                // 更新按钮状态
+                updateButtonsState();
+            }
+            
+            // 更新按钮状态
+            function updateButtonsState() {
+                const currentQuestion = getCurrentQuestion();
+                if (!currentQuestion) return;
+                
+                // 更新上一题按钮状态
+                prevBtnEl.disabled = currentQuestionIndex === 0;
+                
+                // 更新提交按钮状态
+                if (currentQuestion.type === QuestionTypes.MULTIPLE_CHOICE) {
+                    submitBtnEl.disabled = !(userAnswers[currentQuestion.id] || []).length;
+                } else {
+                    submitBtnEl.disabled = !userAnswers[currentQuestion.id];
+                }
+            }
+            
+            // 提交答案
+            function submitAnswer() {
+                const currentQuestion = getCurrentQuestion();
+                if (!currentQuestion) return;
+                
+                submitted = true;
+                submitBtnEl.style.display = 'none';
+                nextBtnEl.style.display = '';
+                
+                const userAnswer = userAnswers[currentQuestion.id];
+                const correctAnswer = currentQuestion.answer;
+                
+                // 显示答案和解析
+                answerPanelEl.style.display = 'block';
+                
+                if (currentQuestion.type === QuestionTypes.MULTIPLE_CHOICE) {
+                    correctAnswerEl.textContent = currentQuestion.answer.join(', ');
+                } else {
+                    correctAnswerEl.textContent = currentQuestion.answer;
+                }
+                
+                explanationEl.textContent = currentQuestion.explanation;
+                
+                // 检查答案是否正确
+                let isCorrect = false;
+                
+                if (currentQuestion.type === QuestionTypes.MULTIPLE_CHOICE) {
+                    // 多选题：检查选择的选项是否完全匹配
+                    const userSelections = userAnswer || [];
+                    isCorrect = userSelections.length === correctAnswer.length &&
+                               userSelections.every(opt => correctAnswer.includes(opt));
+                               
+                    // 高亮显示正确和错误选项
+                    const optionEls = document.querySelectorAll('.option');
+                    currentQuestion.options.forEach((option, index) => {
+                        const optionEl = optionEls[index];
+                        const isSelected = userSelections.includes(option.label);
+                        const isCorrectOption = correctAnswer.includes(option.label);
+                        
+                        if (isCorrectOption) {
+                            optionEl.classList.add('correct');
+                        } else if (isSelected) {
+                            optionEl.classList.add('incorrect');
+                        }
+                    });
+                } else if (currentQuestion.type === QuestionTypes.FILL_BLANK) {
+                    // 填空题：直接比较
+                    isCorrect = userAnswer === correctAnswer;
+                    
+                    // 高亮显示填空框
+                    if (isCorrect) {
+                        fillBlankInputEl.classList.add('correct');
+                    } else {
+                        fillBlankInputEl.classList.add('incorrect');
                     }
+                    
+                    fillBlankInputEl.disabled = true;
+                } else {
+                    // 单选题或判断题：直接比较
+                    isCorrect = userAnswer === correctAnswer;
+                    
+                    // 高亮显示正确和错误选项
+                    const optionEls = document.querySelectorAll('.option');
+                    currentQuestion.options.forEach((option, index) => {
+                        const optionEl = optionEls[index];
+                        
+                        if (option.label === correctAnswer) {
+                            optionEl.classList.add('correct');
+                        } else if (option.label === userAnswer) {
+                            optionEl.classList.add('incorrect');
+                        }
+                    });
+                }
+                
+                // 如果答错，添加到错题本
+                if (!isCorrect && !wrongQuestions.includes(currentQuestion.id)) {
+                    wrongQuestions.push(currentQuestion.id);
+                    try {
+                        localStorage.setItem('wrongQuestions', JSON.stringify(wrongQuestions));
+                    } catch (e) {
+                        console.warn('无法保存错题本到本地存储:', e);
+                    }
+                } else if (isCorrect && wrongQuestions.includes(currentQuestion.id)) {
+                    // 如果答对了，并且之前是错题，从错题本中移除
+                    wrongQuestions = wrongQuestions.filter(id => id !== currentQuestion.id);
+                    try {
+                        localStorage.setItem('wrongQuestions', JSON.stringify(wrongQuestions));
+                    } catch (e) {
+                        console.warn('无法保存错题本到本地存储:', e);
+                    }
+                }
+            }
+            
+            // 下一题
+            function nextQuestion() {
+                const displayQuestions = getDisplayQuestions();
+                if (currentQuestionIndex < displayQuestions.length - 1) {
+                    currentQuestionIndex++;
+                    try {
+                        localStorage.setItem('currentQuestionIndex', currentQuestionIndex.toString());
+                    } catch (e) {
+                        console.warn('无法保存当前题目索引到本地存储:', e);
+                    }
+                    loadQuestion();
+                }
+            }
+            
+            // 上一题
+            function prevQuestion() {
+                if (currentQuestionIndex > 0) {
+                    currentQuestionIndex--;
+                    try {
+                        localStorage.setItem('currentQuestionIndex', currentQuestionIndex.toString());
+                    } catch (e) {
+                        console.warn('无法保存当前题目索引到本地存储:', e);
+                    }
+                    loadQuestion();
+                }
+            }
+            
+            // 跳转到指定题目
+            function goToQuestion(index) {
+                const displayQuestions = getDisplayQuestions();
+                if (index >= 0 && index < displayQuestions.length) {
+                    currentQuestionIndex = index;
+                    try {
+                        localStorage.setItem('currentQuestionIndex', currentQuestionIndex.toString());
+                    } catch (e) {
+                        console.warn('无法保存当前题目索引到本地存储:', e);
+                    }
+                    loadQuestion();
+                    hideModal();
+                }
+            }
+            
+            // 显示题目列表模态框
+            function showQuestionListModal() {
+                // 清空题目列表容器
+                questionListContainerEl.innerHTML = '';
+                
+                // 获取当前显示的题目列表
+                const displayQuestions = getDisplayQuestions();
+                
+                // 为每个题目创建一个列表项
+                displayQuestions.forEach((question, index) => {
+                    const questionItemEl = document.createElement('div');
+                    questionItemEl.className = 'question-item';
+                    questionItemEl.textContent = index + 1;
+                    
+                    // 当前题目
+                    if (index === currentQuestionIndex) {
+                        questionItemEl.classList.add('current');
+                    }
+                    
+                    // 已作答题目
+                    if (userAnswers[question.id]) {
+                        questionItemEl.classList.add('answered');
+                    }
+                    
+                    // 错题
+                    if (wrongQuestions.includes(question.id)) {
+                        questionItemEl.classList.add('wrong');
+                    }
+                    
+                    // 点击跳转到对应题目
+                    questionItemEl.addEventListener('click', () => {
+                        goToQuestion(index);
+                    });
+                    
+                    questionListContainerEl.appendChild(questionItemEl);
                 });
-            }
-            
-            // 如果答错，添加到错题本
-            if (!isCorrect && !wrongQuestions.includes(currentQuestion.id)) {
-                wrongQuestions.push(currentQuestion.id);
-                localStorage.setItem('wrongQuestions', JSON.stringify(wrongQuestions));
-            } else if (isCorrect && wrongQuestions.includes(currentQuestion.id)) {
-                // 如果答对了，并且之前是错题，从错题本中移除
-                wrongQuestions = wrongQuestions.filter(id => id !== currentQuestion.id);
-                localStorage.setItem('wrongQuestions', JSON.stringify(wrongQuestions));
-            }
-        }
-        
-        // 下一题
-        function nextQuestion() {
-            const displayQuestions = getDisplayQuestions();
-            if (currentQuestionIndex < displayQuestions.length - 1) {
-                currentQuestionIndex++;
-                localStorage.setItem('currentQuestionIndex', currentQuestionIndex.toString());
-                loadQuestion();
-            }
-        }
-        
-        // 上一题
-        function prevQuestion() {
-            if (currentQuestionIndex > 0) {
-                currentQuestionIndex--;
-                localStorage.setItem('currentQuestionIndex', currentQuestionIndex.toString());
-                loadQuestion();
-            }
-        }
-        
-        // 跳转到指定题目
-        function goToQuestion(index) {
-            const displayQuestions = getDisplayQuestions();
-            if (index >= 0 && index < displayQuestions.length) {
-                currentQuestionIndex = index;
-                localStorage.setItem('currentQuestionIndex', currentQuestionIndex.toString());
-                loadQuestion();
-                hideModal();
-            }
-        }
-        
-        // 显示题目列表模态框
-        function showQuestionListModal() {
-            // 清空题目列表容器
-            questionListContainerEl.innerHTML = '';
-            
-            // 获取当前显示的题目列表
-            const displayQuestions = getDisplayQuestions();
-            
-            // 为每个题目创建一个列表项
-            displayQuestions.forEach((question, index) => {
-                const questionItemEl = document.createElement('div');
-                questionItemEl.className = 'question-item';
-                questionItemEl.textContent = index + 1;
                 
-                // 当前题目
-                if (index === currentQuestionIndex) {
-                    questionItemEl.classList.add('current');
+                // 更新统计信息
+                totalQuestionsEl.textContent = displayQuestions.length;
+                
+                const answeredCount = displayQuestions.filter(q => userAnswers[q.id]).length;
+                answeredQuestionsEl.textContent = answeredCount;
+                
+                const wrongCount = displayQuestions.filter(q => wrongQuestions.includes(q.id)).length;
+                wrongQuestionsCountEl.textContent = wrongCount;
+                
+                // 如果是错题本模式，显示错题操作区域
+                if (showWrongOnly) {
+                    wrongQuestionsActionsEl.style.display = 'block';
+                } else {
+                    wrongQuestionsActionsEl.style.display = 'none';
                 }
                 
-                // 已作答题目
-                if (userAnswers[question.id]) {
-                    questionItemEl.classList.add('answered');
+                // 显示模态框
+                questionListModalEl.style.display = 'flex';
+            }
+            
+            // 隐藏模态框
+            function hideModal() {
+                questionListModalEl.style.display = 'none';
+                importModalEl.style.display = 'none';
+                // 清除导入错误消息
+                importMessageEl.textContent = '';
+                importMessageEl.className = 'message';
+                importModalMessageEl.textContent = '';
+                importModalMessageEl.className = 'message';
+                // 清空文件输入
+                importFileEl.value = '';
+                importFileInputEl.value = '';
+            }
+            
+            // 切换到错题本模式
+            function toggleWrongQuestionsMode() {
+                showWrongOnly = !showWrongOnly;
+                try {
+                    localStorage.setItem('showWrongOnly', showWrongOnly.toString());
+                } catch (e) {
+                    console.warn('无法保存错题本模式到本地存储:', e);
                 }
                 
-                // 错题
-                if (wrongQuestions.includes(question.id)) {
-                    questionItemEl.classList.add('wrong');
+                const displayQuestions = getDisplayQuestions();
+                
+                if (showWrongOnly) {
+                    // 切换到错题本模式
+                    wrongQuestionsBtnEl.textContent = '返回全部题目';
+                    
+                    if (displayQuestions.length === 0) {
+                        // 如果没有错题
+                        questionTitleEl.textContent = '目前还没有错题记录。';
+                        optionsContainerEl.innerHTML = '';
+                        fillBlankContainerEl.style.display = 'none';
+                        answerPanelEl.style.display = 'none';
+                        submitBtnEl.disabled = true;
+                        nextBtnEl.style.display = 'none';
+                        prevBtnEl.disabled = true;
+                        return;
+                    }
+                } else {
+                    // 返回全部题目
+                    wrongQuestionsBtnEl.textContent = '错题本';
                 }
                 
-                // 点击跳转到对应题目
-                questionItemEl.addEventListener('click', () => {
-                    goToQuestion(index);
-                });
+                // 重置当前题目索引
+                currentQuestionIndex = 0;
+                try {
+                    localStorage.setItem('currentQuestionIndex', '0');
+                } catch (e) {
+                    console.warn('无法保存当前题目索引到本地存储:', e);
+                }
                 
-                questionListContainerEl.appendChild(questionItemEl);
+                loadQuestion();
+            }
+            
+            // 重置所有进度
+            function resetAll() {
+                if (confirm('确定要清除所有记录吗？这将重置答题进度和错题记录。')) {
+                    userAnswers = {};
+                    wrongQuestions = [];
+                    currentQuestionIndex = 0;
+                    showWrongOnly = false;
+                    
+                    try {
+                        localStorage.removeItem('userAnswers');
+                        localStorage.removeItem('wrongQuestions');
+                        localStorage.removeItem('currentQuestionIndex');
+                        localStorage.removeItem('showWrongOnly');
+                    } catch (e) {
+                        console.warn('无法清除本地存储:', e);
+                    }
+                    
+                    wrongQuestionsBtnEl.textContent = '错题本';
+                    
+                    loadQuestion();
+                }
+            }
+            
+            // 导出错题本
+            function exportWrongQuestions() {
+                // 如果没有错题，提示用户
+                if (wrongQuestions.length === 0) {
+                    alert('错题本为空，没有可导出的内容。');
+                    return;
+                }
+                
+                // 准备导出数据
+                const exportData = {
+                    wrongQuestions: wrongQuestions,
+                    wrongQuestionDetails: questions.filter(q => wrongQuestions.includes(q.id)).map(q => ({
+                        id: q.id,
+                        title: q.title,
+                        type: q.type
+                    })),
+                    exportDate: new Date().toISOString(),
+                    totalWrongCount: wrongQuestions.length
+                };
+                
+                // 将数据转换为JSON字符串
+                const jsonString = JSON.stringify(exportData, null, 2);
+                
+                // 创建Blob对象
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                
+                // 创建下载链接
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `错题本_${new Date().toISOString().slice(0, 10)}.json`;
+                
+                // 触发下载
+                document.body.appendChild(link);
+                link.click();
+                
+                // 清理
+                setTimeout(() => {
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                }, 100);
+            }
+            
+            // 显示导入错题本模态框
+            function showImportModal() {
+                importModalEl.style.display = 'flex';
+            }
+            
+            // 导入错题本
+            function importWrongQuestions(fileInput) {
+                const file = fileInput.files[0];
+                if (!file) {
+                    showImportError('请选择要导入的文件', fileInput === importFileInputEl ? importModalMessageEl : importMessageEl);
+                    return;
+                }
+                
+                if (file.type !== 'application/json' && !file.name.endsWith('.json')) {
+                    showImportError('只支持导入JSON格式的文件', fileInput === importFileInputEl ? importModalMessageEl : importMessageEl);
+                    return;
+                }
+                
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        
+                        // 验证导入的数据
+                        if (!data.wrongQuestions || !Array.isArray(data.wrongQuestions)) {
+                            showImportError('导入文件格式不正确', fileInput === importFileInputEl ? importModalMessageEl : importMessageEl);
+                            return;
+                        }
+                        
+                        // 验证题目ID是否有效
+                        const validQuestionIds = questions.map(q => q.id);
+                        const validWrongQuestions = data.wrongQuestions.filter(id => validQuestionIds.includes(id));
+                        
+                        if (validWrongQuestions.length === 0) {
+                            showImportError('导入的错题本中没有匹配的题目', fileInput === importFileInputEl ? importModalMessageEl : importMessageEl);
+                            return;
+                        }
+                        
+                        // 合并错题列表（去重）
+                        const mergedWrongQuestions = [...new Set([...wrongQuestions, ...validWrongQuestions])];
+                        
+                        // 更新错题本
+                        wrongQuestions = mergedWrongQuestions;
+                        try {
+                            localStorage.setItem('wrongQuestions', JSON.stringify(wrongQuestions));
+                        } catch (e) {
+                            console.warn('无法保存错题本到本地存储:', e);
+                        }
+                        
+                        // 显示成功消息
+                        const messageEl = fileInput === importFileInputEl ? importModalMessageEl : importMessageEl;
+                        messageEl.textContent = `成功导入 ${validWrongQuestions.length} 道错题`;
+                        messageEl.className = 'message success';
+                        
+                        // 如果当前在错题本模式，刷新题目列表
+                        if (showWrongOnly) {
+                            currentQuestionIndex = 0;
+                            try {
+                                localStorage.setItem('currentQuestionIndex', '0');
+                            } catch (e) {
+                                console.warn('无法保存当前题目索引到本地存储:', e);
+                            }
+                            loadQuestion();
+                        }
+                        
+                        // 3秒后关闭模态框
+                        if (fileInput === importFileInputEl) {
+                            setTimeout(() => {
+                                hideModal();
+                            }, 2000);
+                        }
+                    } catch (error) {
+                        showImportError('导入文件解析失败', fileInput === importFileInputEl ? importModalMessageEl : importMessageEl);
+                        console.error('导入错题本出错:', error);
+                    }
+                };
+                
+                reader.onerror = function() {
+                    showImportError('读取文件时出错', fileInput === importFileInputEl ? importModalMessageEl : importMessageEl);
+                };
+                
+                reader.readAsText(file);
+            }
+            
+            // 显示导入错误信息
+            function showImportError(message, messageEl) {
+                messageEl.textContent = message;
+                messageEl.className = 'message error';
+            }
+            
+            // 从本地存储中加载数据
+            function loadFromLocalStorage() {
+                try {
+                    const savedUserAnswers = localStorage.getItem('userAnswers');
+                    if (savedUserAnswers) {
+                        userAnswers = JSON.parse(savedUserAnswers);
+                    }
+                    
+                    const savedWrongQuestions = localStorage.getItem('wrongQuestions');
+                    if (savedWrongQuestions) {
+                        wrongQuestions = JSON.parse(savedWrongQuestions);
+                    }
+                    
+                    const savedIndex = localStorage.getItem('currentQuestionIndex');
+                    if (savedIndex) {
+                        currentQuestionIndex = parseInt(savedIndex);
+                    }
+                    
+                    const savedShowWrongOnly = localStorage.getItem('showWrongOnly');
+                    if (savedShowWrongOnly === 'true') {
+                        showWrongOnly = true;
+                        wrongQuestionsBtnEl.textContent = '返回全部题目';
+                    }
+                } catch (e) {
+                    console.warn('从本地存储加载数据出错:', e);
+                    // 如果加载失败，使用默认值
+                    userAnswers = {};
+                    wrongQuestions = [];
+                    currentQuestionIndex = 0;
+                    showWrongOnly = false;
+                }
+            }
+            
+            // 事件监听
+            submitBtnEl.addEventListener('click', submitAnswer);
+            nextBtnEl.addEventListener('click', nextQuestion);
+            prevBtnEl.addEventListener('click', prevQuestion);
+            questionListBtnEl.addEventListener('click', showQuestionListModal);
+            wrongQuestionsBtnEl.addEventListener('click', toggleWrongQuestionsMode);
+            exportWrongBtnEl.addEventListener('click', exportWrongQuestions);
+            importWrongBtnEl.addEventListener('click', showImportModal);
+            resetBtnEl.addEventListener('click', resetAll);
+            closeModalBtnEl.addEventListener('click', hideModal);
+            modalExportBtnEl.addEventListener('click', exportWrongQuestions);
+            modalImportBtnEl.addEventListener('click', () => importWrongQuestions(importFileEl));
+            
+            closeImportModalBtnEl.addEventListener('click', hideModal);
+            cancelImportBtnEl.addEventListener('click', hideModal);
+            confirmImportBtnEl.addEventListener('click', () => importWrongQuestions(importFileInputEl));
+            
+            // 填空题输入框事件
+            fillBlankInputEl.addEventListener('input', function() {
+                saveAnswer(this.value);
             });
             
-            // 更新统计信息
-            totalQuestionsEl.textContent = displayQuestions.length;
-            
-            const answeredCount = displayQuestions.filter(q => userAnswers[q.id]).length;
-            answeredQuestionsEl.textContent = answeredCount;
-            
-            const wrongCount = displayQuestions.filter(q => wrongQuestions.includes(q.id)).length;
-            wrongQuestionsCountEl.textContent = wrongCount;
-            
-            // 如果是错题本模式，显示错题操作区域
-            if (showWrongOnly) {
-                wrongQuestionsActionsEl.style.display = 'block';
-            } else {
-                wrongQuestionsActionsEl.style.display = 'none';
-            }
-            
-            // 显示模态框
-            questionListModalEl.style.display = 'flex';
-        }
-        
-        // 隐藏模态框
-        function hideModal() {
-            questionListModalEl.style.display = 'none';
-            importModalEl.style.display = 'none';
-            // 清除导入错误消息
-            importMessageEl.textContent = '';
-            importMessageEl.className = 'message';
-            importModalMessageEl.textContent = '';
-            importModalMessageEl.className = 'message';
-            // 清空文件输入
-            importFileEl.value = '';
-            importFileInputEl.value = '';
-        }
-        
-        // 切换到错题本模式
-        function toggleWrongQuestionsMode() {
-            showWrongOnly = !showWrongOnly;
-            localStorage.setItem('showWrongOnly', showWrongOnly.toString());
-            
-            const displayQuestions = getDisplayQuestions();
-            
-            if (showWrongOnly) {
-                // 切换到错题本模式
-                wrongQuestionsBtnEl.textContent = '返回全部题目';
-                
-                if (displayQuestions.length === 0) {
-                    // 如果没有错题
-                    questionTitleEl.textContent = '目前还没有错题记录。';
-                    optionsContainerEl.innerHTML = '';
-                    fillBlankContainerEl.style.display = 'none';
-                    answerPanelEl.style.display = 'none';
-                    submitBtnEl.disabled = true;
-                    nextBtnEl.style.display = 'none';
-                    prevBtnEl.disabled = true;
-                    return;
+            // 点击模态框外部关闭模态框
+            questionListModalEl.addEventListener('click', (event) => {
+                if (event.target === questionListModalEl) {
+                    hideModal();
                 }
-            } else {
-                // 返回全部题目
-                wrongQuestionsBtnEl.textContent = '错题本';
-            }
+            });
             
-            // 重置当前题目索引
-            currentQuestionIndex = 0;
-            localStorage.setItem('currentQuestionIndex', '0');
+            importModalEl.addEventListener('click', (event) => {
+                if (event.target === importModalEl) {
+                    hideModal();
+                }
+            });
             
+            // 初始化应用
+            loadFromLocalStorage();
             loadQuestion();
-        }
-        
-        // 重置所有进度
-        function resetAll() {
-            if (confirm('确定要清除所有记录吗？这将重置答题进度和错题记录。')) {
-                userAnswers = {};
-                wrongQuestions = [];
-                currentQuestionIndex = 0;
-                showWrongOnly = false;
-                
-                localStorage.removeItem('userAnswers');
-                localStorage.removeItem('wrongQuestions');
-                localStorage.removeItem('currentQuestionIndex');
-                localStorage.removeItem('showWrongOnly');
-                
-                wrongQuestionsBtnEl.textContent = '错题本';
-                
-                loadQuestion();
-            }
-        }
-        
-        // 导出错题本
-        function exportWrongQuestions() {
-            // 如果没有错题，提示用户
-            if (wrongQuestions.length === 0) {
-                alert('错题本为空，没有可导出的内容。');
-                return;
-            }
-            
-            // 准备导出数据
-            const exportData = {
-                wrongQuestions: wrongQuestions,
-                wrongQuestionDetails: questions.filter(q => wrongQuestions.includes(q.id)).map(q => ({
-                    id: q.id,
-                    title: q.title,
-                    type: q.type
-                })),
-                exportDate: new Date().toISOString(),
-                totalWrongCount: wrongQuestions.length
-            };
-            
-            // 将数据转换为JSON字符串
-            const jsonString = JSON.stringify(exportData, null, 2);
-            
-            // 创建Blob对象
-            const blob = new Blob([jsonString], { type: 'application/json' });
-            
-            // 创建下载链接
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `错题本_${new Date().toISOString().slice(0, 10)}.json`;
-            
-            // 触发下载
-            document.body.appendChild(link);
-            link.click();
-            
-            // 清理
-            setTimeout(() => {
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
-            }, 100);
-        }
-        
-        // 显示导入错题本模态框
-        function showImportModal() {
-            importModalEl.style.display = 'flex';
-        }
-        
-        // 导入错题本
-        function importWrongQuestions(fileInput) {
-            const file = fileInput.files[0];
-            if (!file) {
-                showImportError('请选择要导入的文件', fileInput === importFileInputEl ? importModalMessageEl : importMessageEl);
-                return;
-            }
-            
-            if (file.type !== 'application/json' && !file.name.endsWith('.json')) {
-                showImportError('只支持导入JSON格式的文件', fileInput === importFileInputEl ? importModalMessageEl : importMessageEl);
-                return;
-            }
-            
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                try {
-                    const data = JSON.parse(e.target.result);
-                    
-                    // 验证导入的数据
-                    if (!data.wrongQuestions || !Array.isArray(data.wrongQuestions)) {
-                        showImportError('导入文件格式不正确', fileInput === importFileInputEl ? importModalMessageEl : importMessageEl);
-                        return;
-                    }
-                    
-                    // 验证题目ID是否有效
-                    const validQuestionIds = questions.map(q => q.id);
-                    const validWrongQuestions = data.wrongQuestions.filter(id => validQuestionIds.includes(id));
-                    
-                    if (validWrongQuestions.length === 0) {
-                        showImportError('导入的错题本中没有匹配的题目', fileInput === importFileInputEl ? importModalMessageEl : importMessageEl);
-                        return;
-                    }
-                    
-                    // 合并错题列表（去重）
-                    const mergedWrongQuestions = [...new Set([...wrongQuestions, ...validWrongQuestions])];
-                    
-                    // 更新错题本
-                    wrongQuestions = mergedWrongQuestions;
-                    localStorage.setItem('wrongQuestions', JSON.stringify(wrongQuestions));
-                    
-                    // 显示成功消息
-                    const messageEl = fileInput === importFileInputEl ? importModalMessageEl : importMessageEl;
-                    messageEl.textContent = `成功导入 ${validWrongQuestions.length} 道错题`;
-                    messageEl.className = 'message success';
-                    
-                    // 如果当前在错题本模式，刷新题目列表
-                    if (showWrongOnly) {
-                        currentQuestionIndex = 0;
-                        localStorage.setItem('currentQuestionIndex', '0');
-                        loadQuestion();
-                    }
-                    
-                    // 3秒后关闭模态框
-                    if (fileInput === importFileInputEl) {
-                        setTimeout(() => {
-                            hideModal();
-                        }, 2000);
-                    }
-                } catch (error) {
-                    showImportError('导入文件解析失败', fileInput === importFileInputEl ? importModalMessageEl : importMessageEl);
-                    console.error('导入错题本出错:', error);
-                }
-            };
-            
-            reader.onerror = function() {
-                showImportError('读取文件时出错', fileInput === importFileInputEl ? importModalMessageEl : importMessageEl);
-            };
-            
-            reader.readAsText(file);
-        }
-        
-        // 显示导入错误信息
-        function showImportError(message, messageEl) {
-            messageEl.textContent = message;
-            messageEl.className = 'message error';
-        }
-        
-        // 从本地存储中加载数据
-        function loadFromLocalStorage() {
-            const savedUserAnswers = localStorage.getItem('userAnswers');
-            if (savedUserAnswers) {
-                userAnswers = JSON.parse(savedUserAnswers);
-            }
-            
-            const savedWrongQuestions = localStorage.getItem('wrongQuestions');
-            if (savedWrongQuestions) {
-                wrongQuestions = JSON.parse(savedWrongQuestions);
-            }
-            
-            const savedIndex = localStorage.getItem('currentQuestionIndex');
-            if (savedIndex) {
-                currentQuestionIndex = parseInt(savedIndex);
-            }
-            
-            const savedShowWrongOnly = localStorage.getItem('showWrongOnly');
-            if (savedShowWrongOnly === 'true') {
-                showWrongOnly = true;
-                wrongQuestionsBtnEl.textContent = '返回全部题目';
-            }
-        }
-        
-        // 事件监听
-        submitBtnEl.addEventListener('click', submitAnswer);
-        nextBtnEl.addEventListener('click', nextQuestion);
-        prevBtnEl.addEventListener('click', prevQuestion);
-        questionListBtnEl.addEventListener('click', showQuestionListModal);
-        wrongQuestionsBtnEl.addEventListener('click', toggleWrongQuestionsMode);
-        exportWrongBtnEl.addEventListener('click', exportWrongQuestions);
-        importWrongBtnEl.addEventListener('click', showImportModal);
-        resetBtnEl.addEventListener('click', resetAll);
-        closeModalBtnEl.addEventListener('click', hideModal);
-        modalExportBtnEl.addEventListener('click', exportWrongQuestions);
-        modalImportBtnEl.addEventListener('click', () => importWrongQuestions(importFileEl));
-        
-        closeImportModalBtnEl.addEventListener('click', hideModal);
-        cancelImportBtnEl.addEventListener('click', hideModal);
-        confirmImportBtnEl.addEventListener('click', () => importWrongQuestions(importFileInputEl));
-        
-        // 填空题输入框事件
-        fillBlankInputEl.addEventListener('input', function() {
-            saveAnswer(this.value);
         });
-        
-        // 点击模态框外部关闭模态框
-        questionListModalEl.addEventListener('click', (event) => {
-            if (event.target === questionListModalEl) {
-                hideModal();
-            }
-        });
-        
-        importModalEl.addEventListener('click', (event) => {
-            if (event.target === importModalEl) {
-                hideModal();
-            }
-        });
-        
-        // 初始化应用
-        loadFromLocalStorage();
-        loadQuestion();
     </script>
 </body>
 </html>
