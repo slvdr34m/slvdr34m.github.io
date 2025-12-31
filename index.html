@@ -3,582 +3,538 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>洛阳周末两日游攻略</title>
+    <title>2026 新年倒计时</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            background: #000;
+            overflow: hidden;
             font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
         }
-        body {
-            background-color: #f5f7fa;
-            color: #333;
-            line-height: 1.6;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 20px 0;
-            background: linear-gradient(135deg, #ff9a23, #ff6347); /* Orange-Red Gradient */
-            color: white;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-        header p {
-            font-size: 1.2rem;
-            opacity: 0.9;
-        }
-        .weather-section {
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-        }
-        .weather-title {
-            font-size: 1.5rem;
-            margin-bottom: 15px;
-            color: #ff6347; /* Orange-Red */
-            border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 10px;
-        }
-        .weather-cards {
-            display: flex;
-            justify-content: space-around; /* Changed for better spacing */
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        .weather-card {
-            flex-basis: calc(50% - 10px); /* Two cards per row on larger screens */
-            min-width: 220px; /* Adjusted min-width */
-            background: linear-gradient(to bottom, #fff8f0, #fff0e0); /* Light Orange Gradient */
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-        }
-        .weather-card h3 {
-            margin-bottom: 10px;
-            color: #ff6347;
-        }
-        .weather-icon {
-            font-size: 2rem;
-            margin: 10px 0;
-        }
-        .temp {
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
-        .itinerary-section {
-            margin-bottom: 30px;
-        }
-        .day-container {
-            background-color: white;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            overflow: hidden;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-        }
-        .day-header {
-            background: linear-gradient(135deg, #ffb347, #ff8c00); /* Orange Gradient */
-            color: white;
-            padding: 15px 20px;
-            font-size: 1.3rem;
-        }
-        .day-content {
-            padding: 20px;
-        }
-        .spot-cards {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin-top: 15px;
-            justify-content: center; /* Center cards if they don't fill the row */
-        }
-        .spot-card {
-            flex: 1;
-            min-width: 280px; /* Adjusted min-width */
-            max-width: 350px;
-            background-color: #fffaf0; /* Very Light Orange */
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s;
-        }
-        .spot-card:hover {
-            transform: translateY(-5px);
-        }
-        .spot-img {
+        #canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            height: 180px;
-            object-fit: cover;
+            height: 100%;
+            z-index: 1;
         }
-        .spot-info {
-            padding: 15px;
-        }
-        .spot-name {
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin-bottom: 8px;
-            color: #ff8c00; /* Dark Orange */
-        }
-        .spot-desc, .spot-details {
-            font-size: 0.95rem;
-            color: #666;
-            margin-bottom: 10px;
-        }
-        .transportation {
-            display: flex;
-            align-items: center;
-            margin: 20px 0;
-            padding: 15px;
-            background-color: #fff5e1; /* Lightest Orange */
-            border-radius: 8px;
-        }
-        .transportation-icon {
-            font-size: 1.5rem;
-            margin-right: 15px;
-            color: #ff8c00;
-        }
-        .map-section {
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-        }
-        .map-title {
-            font-size: 1.5rem;
-            margin-bottom: 15px;
-            color: #ff6347;
-            border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 10px;
-        }
-        .map-container {
-            height: 450px; /* Adjusted height */
-            border-radius: 8px;
-            overflow: hidden;
-            position: relative;
-        }
-        .map-legend {
-            position: absolute;
-            bottom: 15px; /* Adjusted position */
-            left: 15px;
-            padding: 8px; /* Adjusted padding */
-            background: rgba(255,255,255,0.95); /* Slightly more opaque */
-            border-radius: 5px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2); /* Softer shadow */
-            z-index: 100;
-            font-size: 11px; /* Adjusted font size */
-            max-width: 180px; /* Adjusted max-width */
-        }
-        .taxi-links {
-            margin-top: 15px;
-        }
-        .taxi-btn {
-            display: inline-block;
-            background: linear-gradient(135deg, #ffaf60, #ff8c00); /* Orange Gradient for buttons */
-            color: white;
-            padding: 10px 15px;
-            border-radius: 5px;
-            text-decoration: none;
-            font-weight: bold;
-            margin-right: 10px;
-            margin-bottom: 10px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            transition: background 0.3s;
-        }
-        .taxi-btn:hover {
-            background: linear-gradient(135deg, #ff8c00, #ffaf60);
-        }
-        footer {
+
+        /* 庆祝文字样式 */
+        #celebration {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
             text-align: center;
-            padding: 20px;
-            color: #666;
-            font-size: 0.9rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.8s ease;
         }
-        .tips-section {
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+
+        #celebration.show {
+            opacity: 1;
         }
-        .tips-title {
-            font-size: 1.5rem;
-            margin-bottom: 15px;
-            color: #ff6347;
-            border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 10px;
+
+        #celebration .year {
+            font-size: clamp(80px, 15vw, 200px);
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffd700 0%, #ffaa00 30%, #ff6600 60%, #ff3366 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 60px rgba(255, 170, 0, 0.5);
+            filter: drop-shadow(0 0 30px rgba(255, 150, 0, 0.4));
+            animation: yearPulse 2s ease-in-out infinite;
+            letter-spacing: 10px;
         }
-        .tips-content ul {
-            padding-left: 20px;
+
+        #celebration .greeting {
+            font-size: clamp(40px, 8vw, 100px);
+            font-weight: 700;
+            background: linear-gradient(90deg, #fff 0%, #ffd700 50%, #fff 100%);
+            background-size: 200% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 3s linear infinite;
+            margin-top: 20px;
+            letter-spacing: 15px;
         }
-        .tips-content li {
-            margin-bottom: 10px;
+
+        @keyframes yearPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
         }
-        .amap-marker-label {
-            border: 0;
-            background-color: transparent;
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
         }
-        .amap-info-content {
-            padding: 0 !important;
-            border-radius: 6px !important;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2) !important;
-            border: none !important;
+
+        /* 日期显示样式 */
+        #dateDisplay {
+            position: fixed;
+            top: calc(50% - 120px);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            font-size: clamp(32px, 6vw, 60px);
+            font-weight: 600;
+            letter-spacing: 12px;
+            background: linear-gradient(
+                90deg,
+                rgba(255,255,255,0.6) 0%,
+                rgba(255,255,255,0.9) 20%,
+                rgba(255,215,180,1) 50%,
+                rgba(255,255,255,0.9) 80%,
+                rgba(255,255,255,0.6) 100%
+            );
+            background-size: 200% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: dateShimmer 6s ease-in-out infinite;
+            filter: drop-shadow(0 0 15px rgba(255,220,180,0.3));
+            transition: opacity 0.5s ease;
         }
-        @media (max-width: 768px) {
-            .weather-cards {
-                flex-direction: column;
-                align-items: center; /* Center cards in column */
-            }
-            .weather-card {
-                flex-basis: 100%; /* Full width on small screens */
-                margin-bottom: 15px;
-            }
-            .spot-cards {
-                flex-direction: column;
-            }
-            .spot-card {
-                max-width: 100%;
-            }
-            .map-legend {
-                bottom: 10px;
-                left: 10px;
-                padding: 8px;
-                font-size: 10px;
-                max-width: 150px;
-            }
-            header h1 { font-size: 2rem; }
-            header p { font-size: 1rem; }
+
+        @keyframes dateShimmer {
+            0%, 100% { background-position: 200% 0; }
+            50% { background-position: -200% 0; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>洛阳周末高效率游玩攻略</h1>
-            <p>古都神韵，两日精华，拍照打卡全覆盖</p>
-        </header>
- 
-        <section class="weather-section">
-            <h2 class="weather-title">周末洛阳天气早知道</h2>
-            <div class="weather-cards">
-                <div class="weather-card">
-                    <h3>5月10日 (周六)</h3>
-                    <div class="weather-icon">☀️</div>
-                    <p>白天: 晴</p>
-                    <p>夜间: 晴</p>
-                    <p class="temp">温度: 26°C / 12°C</p>
-                    <p>风力: 西北风 1-3级</p>
-                </div>
-                <div class="weather-card">
-                    <h3>5月11日 (周日)</h3>
-                    <div class="weather-icon">☁️</div>
-                    <p>白天: 多云</p>
-                    <p>夜间: 多云</p>
-                    <p class="temp">温度: 31°C / 15°C</p>
-                    <p>风力: 西风 1-3级</p>
-                </div>
-            </div>
-        </section>
- 
-        <section class="tips-section">
-            <h2 class="tips-title">洛阳旅行小贴士</h2>
-            <div class="tips-content">
-                <ul>
-                    <li><strong>最佳季节：</strong>春季(4-5月)牡丹花开，秋季(9-10月)天高气爽，是游览洛阳的好时节。</li>
-                    <li><strong>特色美食：</strong>洛阳水席、不翻汤、胡辣汤、浆面条等，值得一试。</li>
-                    <li><strong>汉服体验：</strong>洛阳有浓厚的汉唐文化氛围，体验汉服拍照是不错的选择。</li>
-                    <li><strong>交通方式：</strong>本次攻略以打车为主，节省时间。市内公交和地铁也较方便。</li>
-                    <li><strong>重要提醒：</strong>周一的老君山行程非常紧张，请务必提前规划好游览路线，并确保交通顺畅。</li>
-                    <li><strong>高德地图：</strong>本攻略提供的地图及打车链接可配合高德地图App使用，方便导航。</li>
-                </ul>
-            </div>
-        </section>
- 
-        <section class="map-section">
-            <h2 class="map-title">行程总览地图</h2>
-            <div class="map-container" id="tripMapContainer"></div>
-            <div style="margin-top: 20px; text-align: center;">
-                <a href="amapuri://workInAmap/createWithToken?polymericId=mcp_89230d64c9444a2694247d26d60cdc7e&from=MCP" class="taxi-btn" style="font-size: 1.2rem; padding: 15px 25px;">
-                    <span style="margin-right: 10px;">🗺️</span>在高德地图App中查看完整行程
-                </a>
-            </div>
-        </section>
- 
-        <section class="itinerary-section">
-            <!-- 周六 -->
-            <div class="day-container">
-                <div class="day-header">
-                    <h2>Day 1: 周六 (5月10日) - 抵达洛阳，安顿休息</h2>
-                </div>
-                <div class="day-content">
-                    <p>傍晚抵达洛阳，前往民宿休息，为第二天的充实行程养精蓄锐。</p>
-                    <div class="spot-cards">
-                        <div class="spot-card">
-                            <img src="https://aos-comment.amap.com/B017B02U7H/comment/174633814269_1746338146049_21425311.jpg" alt="洛阳龙门站" class="spot-img">
-                            <div class="spot-info">
-                                <h3 class="spot-name">洛阳龙门站</h3>
-                                <p class="spot-desc">18:36 G2063高铁抵达 (预计21:30)。</p>
-                            </div>
-                        </div>
-                        <div class="spot-card">
-                            <img src="https://picsum.photos/350/180?random=1" alt="榴园民宿" class="spot-img"> <!-- Placeholder -->
-                            <div class="spot-info">
-                                <h3 class="spot-name">榴园民宿</h3>
-                                <p class="spot-desc">打车前往民宿，办理入住，好好休息。</p>
-                                <div class="taxi-links" style="margin-top:10px;">
-                                    <a href="amapuri://drive/takeTaxi?sourceApplication=amapplatform&slat=34.593318&slon=112.458781&sname=洛阳龙门站&dlat=34.619702&dlon=112.453895&dname=榴园民宿" class="taxi-btn">打车去榴园民宿</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <canvas id="canvas"></canvas>
 
-            <!-- 周日 -->
-            <div class="day-container">
-                <div class="day-header">
-                    <h2>Day 2: 周日 (5月11日) - 文化盛宴与汉服风采</h2>
-                </div>
-                <div class="day-content">
-                    <p>今日行程紧凑，将游览洛阳的精华景点，并体验汉服之美。</p>
-                    <div class="spot-cards">
-                        <div class="spot-card">
-                            <img src="http://store.is.autonavi.com/showpic/90fc4281626b617c1fc0d347e782bfd0" alt="龙门石窟" class="spot-img">
-                            <div class="spot-info">
-                                <h3 class="spot-name">龙门石窟</h3>
-                                <p class="spot-desc">中国三大石窟之一，世界文化遗产。建议游玩2小时。</p>
-                                <div class="taxi-links" style="margin-top:10px;">
-                                     <a href="amapuri://drive/takeTaxi?sourceApplication=amapplatform&slat=34.619702&slon=112.453895&sname=榴园民宿&dlat=34.558782&dlon=112.477463&dname=龙门石窟" class="taxi-btn">从民宿打车去龙门石窟</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="spot-card">
-                            <img src="http://store.is.autonavi.com/showpic/06cf4e5b9f5086fa9f6cd70dffc7651c" alt="白马寺" class="spot-img">
-                            <div class="spot-info">
-                                <h3 class="spot-name">白马寺</h3>
-                                <p class="spot-desc">中国第一古刹，佛教传入中国后兴建的第一座官办寺院。建议游玩1.5-2小时，午餐可在附近解决。</p>
-                                 <div class="taxi-links" style="margin-top:10px;">
-                                     <a href="amapuri://drive/takeTaxi?sourceApplication=amapplatform&slat=34.558782&slon=112.477463&sname=龙门石窟&dlat=34.721828&dlon=112.605311&dname=白马寺" class="taxi-btn">从龙门石窟打车去白马寺</a>
-                                </div>
-                            </div>
-                        </div>
-                         <div class="spot-card">
-                            <img src="http://store.is.autonavi.com/showpic/1970f42d95c4d40ef2458ad69358567a" alt="十三棠汉服体验馆" class="spot-img">
-                            <div class="spot-info">
-                                <h3 class="spot-name">十三棠汉服体验馆</h3>
-                                <p class="spot-desc">进行汉服妆造，约1小时。为晚上的应天门夜景拍摄做准备。</p>
-                                <div class="taxi-links" style="margin-top:10px;">
-                                     <a href="amapuri://drive/takeTaxi?sourceApplication=amapplatform&slat=34.721828&slon=112.605311&sname=白马寺&dlat=34.678558&dlon=112.486550&dname=十三棠汉服体验馆" class="taxi-btn">从白马寺打车去汉服馆</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="spot-card">
-                            <img src="http://store.is.autonavi.com/showpic/6da98b8935f5b24692e528c6a79eea79" alt="应天门夜景" class="spot-img">
-                            <div class="spot-info">
-                                <h3 class="spot-name">应天门 (夜景)</h3>
-                                <p class="spot-desc">隋唐洛阳城宫城的正南门，夜景恢弘壮丽，着汉服拍照绝佳。游玩1.5-2小时。</p>
-                                <div class="taxi-links" style="margin-top:10px;">
-                                     <a href="amapuri://drive/takeTaxi?sourceApplication=amapplatform&slat=34.678558&slon=112.486550&sname=十三棠汉服体验馆&dlat=34.677731&dlon=112.459511&dname=应天门" class="taxi-btn">从汉服馆打车去应天门</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="spot-card">
-                            <img src="http://store.is.autonavi.com/showpic/ad61ea36704a704aa44573a73680ec4e" alt="洛邑古城" class="spot-img">
-                            <div class="spot-info">
-                                <h3 class="spot-name">洛邑古城 (备选/晚餐)</h3>
-                                <p class="spot-desc">换装后可在此处晚餐或宵夜。十三棠汉服馆即在此区域，可根据时间弹性安排游览。</p>
-                                <div class="taxi-links" style="margin-top:10px;">
-                                     <a href="amapuri://drive/takeTaxi?sourceApplication=amapplatform&slat=34.678558&slon=112.486550&sname=十三棠汉服体验馆&dlat=34.619702&dlon=112.453895&dname=榴园民宿" class="taxi-btn">返回民宿</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <!-- 倒计时日期显示 -->
+    <div id="dateDisplay">2025年12月31日</div>
 
-            <!-- 周一 -->
-            <div class="day-container">
-                <div class="day-header">
-                    <h2>Day 3: 周一 (5月12日) - 挑战老君山，顺利返程</h2>
-                </div>
-                <div class="day-content">
-                    <p>今日行程极具挑战性，早起前往老君山，感受仙境后准时返程。</p>
-                     <div class="spot-cards">
-                        <div class="spot-card">
-                            <img src="https://picsum.photos/350/180?random=2" alt="凌晨出发" class="spot-img"> <!-- Placeholder -->
-                            <div class="spot-info">
-                                <h3 class="spot-name">凌晨出发</h3>
-                                <p class="spot-desc">约4:00-4:20从民宿出发，打车前往老君山，车程约2小时。</p>
-                            </div>
-                        </div>
-                        <div class="spot-card">
-                            <img src="http://store.is.autonavi.com/showpic/57970a97407475e0c18f094f4255dfcc" alt="老君山" class="spot-img">
-                            <div class="spot-info">
-                                <h3 class="spot-name">老君山风景名胜区</h3>
-                                <p class="spot-desc">道教圣地，以奇峰秀水、金顶道观群闻名。游玩时间控制在2小时内，以拍照为主。</p>
-                                <div class="taxi-links" style="margin-top:10px;">
-                                     <a href="amapuri://drive/takeTaxi?sourceApplication=amapplatform&slat=34.619702&slon=112.453895&sname=榴园民宿&dlat=33.753558&dlon=111.644396&dname=老君山" class="taxi-btn">从民宿打车去老君山</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="spot-card">
-                            <img src="https://aos-comment.amap.com/B017B02U7H/comment/174633814269_1746338146049_21425311.jpg" alt="洛阳龙门站返程" class="spot-img">
-                            <div class="spot-info">
-                                <h3 class="spot-name">返程 - 洛阳龙门站</h3>
-                                <p class="spot-desc">最晚8:20从老君山打车前往洛阳龙门站 (车程约2小时+)，确保10:20前抵达。11:21 G3418高铁返程。</p>
-                                <div class="taxi-links" style="margin-top:10px;">
-                                     <a href="amapuri://drive/takeTaxi?sourceApplication=amapplatform&slat=33.753558&slon=111.644396&sname=老君山&dlat=34.593318&dlon=112.458781&dname=洛阳龙门站" class="taxi-btn">从老君山打车去车站</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
- 
-        <footer>
-            <p>© 2025 洛阳周末游攻略 | 制作时间: 2025年5月8日</p>
-        </footer>
+    <div id="celebration">
+        <div class="year">2026</div>
+        <div class="greeting">新年快乐</div>
     </div>
- 
+
     <script>
-        window.onload = function() {
-            var url = 'https://webapi.amap.com/maps?v=2.0&key=98a9b1aede875554fc1957f1026b327a'; // 请替换为您的有效高德API Key
-            var jsapi = document.createElement('script');
-            jsapi.charset = 'utf-8';
-            jsapi.src = url;
-            document.head.appendChild(jsapi);
-            jsapi.onload = function() {
-                initTripMap();
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const celebrationEl = document.getElementById('celebration');
+        const dateDisplayEl = document.getElementById('dateDisplay');
+
+        let W, H;
+        let phase = 'countdown';
+        let lastSec = -1;
+        let needTransition = false;
+        let currentDateStr = '';
+        let currentTimeStr = '';
+
+        function resize() {
+            W = window.innerWidth;
+            H = window.innerHeight;
+            canvas.width = W;
+            canvas.height = H;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        // ========== 配置 ==========
+        const TIME_SPACING = 3;
+        const TIME_SIZE = 1.5;
+        const EXPLODE_FORCE = 2.5;
+        const LERP_SPEED = 0.18;
+
+        let simTime = 50;
+        let lastTime = performance.now();
+
+        // ========== 粒子系统 ==========
+        const timeParticles = [];
+        const freeParticles = [];
+
+        function createParticle(x, y, tx, ty, size) {
+            return {
+                x, y, tx, ty,
+                vx: 0, vy: 0,
+                size: size + Math.random() * 0.3,
+                exploding: false,
+                free: false,
+                life: 1
             };
         }
 
-        function initTripMap() {
-            var map = new AMap.Map('tripMapContainer', {
-                zoom: 9,
-                center: [112.453895, 34.619702], // 洛阳市中心大致位置或民宿位置
-                viewMode: '3D',
-                pitch: 30
-            });
-
-            var dayColors = ['#FF6347', '#FFA500', '#4682B4']; // Red-Orange, Orange, SteelBlue
-
-            // 定义各天行程点
-            var day1Points = [ // 周六
-                { position: [112.458781, 34.593318], title: '洛阳龙门站 (抵达)', iconIdx:1 },
-                { position: [112.453895, 34.619702], title: '榴园民宿', iconIdx:2 }
-            ];
-
-            var day2Points = [ // 周日
-                { position: [112.453895, 34.619702], title: '榴园民宿 (出发)', iconIdx:1 },
-                { position: [112.477463, 34.558782], title: '龙门石窟', iconIdx:2 },
-                { position: [112.605311, 34.721828], title: '白马寺', iconIdx:3 },
-                { position: [112.486550, 34.678558], title: '十三棠汉服体验馆', iconIdx:4 },
-                { position: [112.459511, 34.677731], title: '应天门 (夜景)', iconIdx:5 },
-                { position: [112.486550, 34.678558], title: '十三棠汉服体验馆 (换装)', iconIdx:6 },
-                { position: [112.485290, 34.680390], title: '洛邑古城 (备选/晚餐)', iconIdx:7 },
-                { position: [112.453895, 34.619702], title: '榴园民宿 (返回)', iconIdx:8 }
-            ];
-            
-            var day3Points = [ // 周一
-                { position: [112.453895, 34.619702], title: '榴园民宿 (出发)', iconIdx:1 },
-                { position: [111.644396, 33.753558], title: '老君山风景名胜区', iconIdx:2 },
-                { position: [112.458781, 34.593318], title: '洛阳龙门站 (返程)', iconIdx:3 }
-            ];
-
-            addMarkersAndPathToMap(map, day1Points, dayColors[0], '周六');
-            addMarkersAndPathToMap(map, day2Points, dayColors[1], '周日');
-            addMarkersAndPathToMap(map, day3Points, dayColors[2], '周一');
-            
-            addMapLegend(map, dayColors);
-            map.setFitView(); // 自动调整视野以包含所有标记和路径
+        function updateParticle(p, lerp = LERP_SPEED) {
+            if (p.free) {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.02;
+                p.life -= 0.006;
+                return p.life > 0;
+            }
+            if (p.exploding) {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vx *= 0.93;
+                p.vy *= 0.93;
+                if (Math.abs(p.vx) < 0.08 && Math.abs(p.vy) < 0.08) {
+                    p.exploding = false;
+                }
+            } else {
+                p.x += (p.tx - p.x) * lerp;
+                p.y += (p.ty - p.y) * lerp;
+            }
+            return true;
         }
 
-        function addMarkersAndPathToMap(map, markerData, color, dayTitle) {
-            var markers = [];
-            var path = [];
-            
-            markerData.forEach(function(item, index) {
-                var marker = new AMap.Marker({
-                    position: item.position,
-                    title: item.title,
-                    map: map,
-                    icon: new AMap.Icon({
-                        size: new AMap.Size(25, 34), // 默认图标大小
-                        image: '//a.amap.com/jsapi_demos/static/demo-center/icons/poi-marker-' + item.iconIdx + '.png',
-                        imageSize: new AMap.Size(25, 34)
-                    }),
-                    label: {
-                        content: item.iconIdx, // 显示数字
-                        direction: 'top',
-                        offset: new AMap.Pixel(item.iconIdx > 9 ? -5 : 0, -2) // 调整数字位置
+        function drawParticle(p, color = '#fff') {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fillStyle = p.free ? `rgba(255,255,255,${p.life})` : color;
+            ctx.fill();
+        }
+
+        function explodeParticle(p) {
+            p.exploding = true;
+            const a = Math.random() * Math.PI * 2;
+            const f = EXPLODE_FORCE + Math.random() * 2;
+            p.vx = Math.cos(a) * f;
+            p.vy = Math.sin(a) * f;
+        }
+
+        // ========== 文字转位置 ==========
+        function getPositions(text, fontSize, cx, cy, spacing) {
+            const offscreen = document.createElement('canvas');
+            const octx = offscreen.getContext('2d');
+
+            octx.font = `bold ${fontSize}px Arial, sans-serif`;
+            const m = octx.measureText(text);
+            const tw = Math.ceil(m.width) + 20;
+            const th = fontSize + 20;
+
+            offscreen.width = tw;
+            offscreen.height = th;
+
+            octx.font = `bold ${fontSize}px Arial, sans-serif`;
+            octx.fillStyle = '#fff';
+            octx.textAlign = 'center';
+            octx.textBaseline = 'middle';
+            octx.fillText(text, tw / 2, th / 2);
+
+            const data = octx.getImageData(0, 0, tw, th).data;
+            const result = [];
+            const ox = cx - tw / 2;
+            const oy = cy - th / 2;
+
+            for (let y = 0; y < th; y += spacing) {
+                for (let x = 0; x < tw; x += spacing) {
+                    const i = (y * tw + x) * 4;
+                    if (data[i + 3] > 100) {
+                        result.push({ x: ox + x, y: oy + y });
                     }
-                });
-                
-                var infoWindow = new AMap.InfoWindow({
-                    content: '<div style="padding:10px;font-size:13px;color:' + color + '; width: max-content;">' + 
-                            '<b>' + dayTitle + ': ' + item.title + '</b></div>',
-                    offset: new AMap.Pixel(0, -30),
-                    autoMove: true,
-                    closeWhenClickMap: true
-                });
+                }
+            }
+            return result;
+        }
 
-                marker.on('click', function() {
-                    infoWindow.open(map, marker.getPosition());
-                });
-                markers.push(marker);
-                path.push(item.position);
-            });
-
-            if (path.length > 1) {
-                var polyline = new AMap.Polyline({
-                    path: path,
-                    isOutline: true,
-                    outlineColor: '#FAFAFA', // 浅色轮廓
-                    borderWeight: 1,
-                    strokeColor: color,
-                    strokeWeight: 4, // 调整线条粗细
-                    strokeStyle: 'solid',
-                    strokeOpacity: 0.8,
-                    zIndex: 50,
-                    map: map
-                });
+        // ========== 年月日（CSS文字） ==========
+        function updateDateDisplay() {
+            const dateStr = simTime < 60 ? '2025年12月31日' : '2026年1月1日';
+            if (dateStr !== currentDateStr) {
+                currentDateStr = dateStr;
+                dateDisplayEl.textContent = dateStr;
             }
         }
 
-        function addMapLegend(map, colors) {
-            var legend = document.createElement('div');
-            legend.className = 'map-legend';
-            
-            var html = '<div style="font-weight:bold;margin-bottom:5px; text-align:center;">行程路线图例</div>';
-            var days = ['周六: 抵达', '周日: 市区精华游', '周一: 老君山与返程'];
-            
-            days.forEach(function(day, i) {
-                html += '<div style="margin:3px 0;"><span style="display:inline-block;width:18px;height:3px;background:' + 
-                       colors[i] + ';margin-right:5px;vertical-align:middle;"></span>' + day + '</div>';
-            });
-            
-            legend.innerHTML = html;
-            // 将图例添加到地图容器的右上角
-             map.addControl(new AMap.Control({
-                dom: legend,
-                position: 'RT', // RT 表示右上角
-                offset: new AMap.Pixel(10, 10) // 偏移量
-            }));
+        // ========== 时分秒（动态） ==========
+        function setTimeText(text, explode) {
+            const fontSize = Math.min(W / 7, 120);
+            const positions = getPositions(text, fontSize, W / 2, H / 2 + 40, TIME_SPACING);
+
+            if (timeParticles.length === 0 || !explode) {
+                timeParticles.length = 0;
+                positions.forEach(pos => {
+                    const p = createParticle(
+                        W / 2 + (Math.random() - 0.5) * 50,
+                        H / 2 + (Math.random() - 0.5) * 50,
+                        pos.x, pos.y, TIME_SIZE
+                    );
+                    timeParticles.push(p);
+                });
+            } else {
+                timeParticles.forEach(p => explodeParticle(p));
+
+                while (timeParticles.length < positions.length) {
+                    const p = createParticle(W / 2, H / 2 + 40, 0, 0, TIME_SIZE);
+                    timeParticles.push(p);
+                }
+                while (timeParticles.length > positions.length) {
+                    const p = timeParticles.pop();
+                    p.free = true;
+                    p.vx = (Math.random() - 0.5) * 3;
+                    p.vy = -Math.random() * 2 - 1;
+                    freeParticles.push(p);
+                }
+
+                positions.forEach((pos, i) => {
+                    timeParticles[i].tx = pos.x;
+                    timeParticles[i].ty = pos.y;
+                });
+            }
+            currentTimeStr = text;
         }
+
+        function explodeAllCountdown() {
+            while (timeParticles.length > 0) {
+                const p = timeParticles.pop();
+                p.free = true;
+                const a = Math.random() * Math.PI * 2;
+                p.vx = Math.cos(a) * (2 + Math.random() * 3);
+                p.vy = Math.sin(a) * (2 + Math.random() * 3);
+                freeParticles.push(p);
+            }
+            // 隐藏日期显示
+            dateDisplayEl.style.opacity = '0';
+        }
+
+        function formatTimeOnly(sec) {
+            if (sec < 60) {
+                return `23:59:${String(sec).padStart(2, '0')}`;
+            } else {
+                return `00:00:${String(sec - 60).padStart(2, '0')}`;
+            }
+        }
+
+        // ========== 星空 ==========
+        const stars = [];
+        for (let i = 0; i < 120; i++) {
+            stars.push({
+                x: Math.random(), y: Math.random(),
+                s: Math.random() * 1.5,
+                p: Math.random() * Math.PI * 2
+            });
+        }
+
+        function drawStars() {
+            stars.forEach(st => {
+                st.p += 0.008;
+                const b = 0.15 + Math.sin(st.p) * 0.25;
+                ctx.beginPath();
+                ctx.arc(st.x * W, st.y * H, st.s, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255,255,255,${b})`;
+                ctx.fill();
+            });
+        }
+
+        // ========== 烟花系统 ==========
+        const fireworks = [];
+
+        function addFirework() {
+            const colors = [
+                'rgba(255,100,100,1)',
+                'rgba(255,200,100,1)',
+                'rgba(255,255,150,1)',
+                'rgba(150,255,150,1)',
+                'rgba(150,200,255,1)',
+                'rgba(255,150,255,1)',
+                'rgba(255,255,255,1)',
+            ];
+            fireworks.push({
+                x: Math.random() * W,
+                y: H + 10,
+                vy: -4 - Math.random() * 3,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                done: false,
+                trail: [],
+                particles: []
+            });
+        }
+
+        function updateFireworks() {
+            for (let i = fireworks.length - 1; i >= 0; i--) {
+                const f = fireworks[i];
+
+                if (!f.done) {
+                    f.trail.push({ x: f.x, y: f.y, a: 1 });
+                    if (f.trail.length > 6) f.trail.shift();
+                    f.y += f.vy;
+                    f.vy += 0.06;
+
+                    if (f.vy >= 0) {
+                        f.done = true;
+                        const count = 40 + Math.floor(Math.random() * 30);
+                        for (let j = 0; j < count; j++) {
+                            const a = Math.random() * Math.PI * 2;
+                            const sp = 1 + Math.random() * 3;
+                            f.particles.push({
+                                x: f.x, y: f.y,
+                                vx: Math.cos(a) * sp,
+                                vy: Math.sin(a) * sp,
+                                life: 1,
+                                size: 1 + Math.random() * 1.5
+                            });
+                        }
+                    }
+                }
+
+                f.trail = f.trail.filter(t => { t.a -= 0.06; return t.a > 0; });
+
+                f.particles = f.particles.filter(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.03;
+                    p.vx *= 0.98;
+                    p.vy *= 0.98;
+                    p.life -= 0.012;
+                    return p.life > 0;
+                });
+
+                if (f.done && f.trail.length === 0 && f.particles.length === 0) {
+                    fireworks.splice(i, 1);
+                }
+            }
+        }
+
+        function drawFireworks() {
+            fireworks.forEach(f => {
+                f.trail.forEach(t => {
+                    ctx.beginPath();
+                    ctx.arc(t.x, t.y, 1.5, 0, Math.PI * 2);
+                    ctx.fillStyle = f.color.replace('1)', `${t.a})`);
+                    ctx.fill();
+                });
+
+                if (!f.done) {
+                    ctx.beginPath();
+                    ctx.arc(f.x, f.y, 2, 0, Math.PI * 2);
+                    ctx.fillStyle = f.color;
+                    ctx.fill();
+                }
+
+                f.particles.forEach(p => {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fillStyle = f.color.replace('1)', `${p.life})`);
+                    ctx.fill();
+                });
+            });
+        }
+
+        // ========== 主逻辑 ==========
+        let fireworkTimer = 0;
+
+        function update(dt) {
+            simTime += dt / 1000;
+            if (simTime >= 120) simTime = 0;
+
+            const sec = Math.floor(simTime);
+            const ms = (simTime - sec) * 1000;
+            const isCountdown = sec < 60;
+
+            fireworkTimer += dt;
+
+            // 跨年
+            if (phase === 'countdown' && !isCountdown) {
+                phase = 'celebration';
+                explodeAllCountdown();
+                // 显示庆祝文字
+                setTimeout(() => {
+                    celebrationEl.classList.add('show');
+                }, 500);
+                // 大量烟花
+                for (let i = 0; i < 20; i++) {
+                    setTimeout(addFirework, i * 120);
+                }
+            }
+
+            // 循环回倒计时
+            if (phase === 'celebration' && isCountdown) {
+                phase = 'countdown';
+                lastSec = -1;
+                currentDateStr = '';
+                celebrationEl.classList.remove('show');
+
+                setTimeout(() => {
+                    dateDisplayEl.style.opacity = '1';
+                    updateDateDisplay();
+                    setTimeText(formatTimeOnly(sec), false);
+                }, 400);
+            }
+
+            if (phase === 'countdown') {
+                updateDateDisplay();
+
+                const timeStr = formatTimeOnly(sec);
+
+                if (timeParticles.length === 0) {
+                    setTimeText(timeStr, false);
+                    currentTimeStr = timeStr;
+                    lastSec = sec;
+                }
+
+                if (sec !== lastSec) {
+                    lastSec = sec;
+                    needTransition = true;
+                }
+
+                if (needTransition && ms >= 800 && currentTimeStr !== timeStr) {
+                    needTransition = false;
+                    setTimeText(timeStr, true);
+                }
+
+                // 倒计时烟花
+                if (fireworkTimer > 800) {
+                    fireworkTimer = 0;
+                    if (sec >= 50 && Math.random() < 0.6) {
+                        addFirework();
+                    } else if (Math.random() < 0.15) {
+                        addFirework();
+                    }
+                }
+            }
+
+            if (phase === 'celebration') {
+                // 庆祝烟花（很多）
+                if (fireworkTimer > 150) {
+                    fireworkTimer = 0;
+                    if (Math.random() < 0.8) {
+                        addFirework();
+                    }
+                }
+            }
+        }
+
+        // ========== 渲染 ==========
+        function loop(now) {
+            const dt = now - lastTime;
+            lastTime = now;
+
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, W, H);
+
+            drawStars();
+            updateFireworks();
+            drawFireworks();
+
+            for (let i = freeParticles.length - 1; i >= 0; i--) {
+                const p = freeParticles[i];
+                if (!updateParticle(p)) {
+                    freeParticles.splice(i, 1);
+                } else {
+                    drawParticle(p);
+                }
+            }
+
+            timeParticles.forEach(p => {
+                updateParticle(p);
+                drawParticle(p, '#fff');
+            });
+
+            update(dt);
+            requestAnimationFrame(loop);
+        }
+
+        requestAnimationFrame(loop);
     </script>
 </body>
 </html>
