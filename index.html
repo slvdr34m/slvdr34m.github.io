@@ -3,538 +3,626 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 新年倒计时</title>
+    <title>2026跨年倒计时</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            min-height: 100vh;
-            background: #000;
-            overflow: hidden;
-            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        #canvas {
-            position: fixed;
+
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .date-header {
+            font-size: 1.5rem;
+            margin-bottom: 60px;
+            letter-spacing: 4px;
+            color: #999;
+            text-align: center;
+        }
+
+        .countdown-container {
+            display: flex;
+            gap: 40px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .time-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .flip-clock {
+            position: relative;
+            width: 200px;
+            height: 240px;
+            perspective: 1000px;
+            font-size: 120px;
+            font-weight: bold;
+        }
+
+        /* 上半部分 - 新数字（背景层） */
+        .digit-upper {
+            position: absolute;
             top: 0;
-            left: 0;
             width: 100%;
-            height: 100%;
+            height: 50%;
+            overflow: hidden;
+            background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
+            border: 2px solid #333;
+            border-radius: 20px 20px 0 0;
+            border-bottom: 1px solid #000;
             z-index: 1;
         }
 
-        /* 庆祝文字样式 */
-        #celebration {
-            position: fixed;
-            top: 50%;
+        .digit-upper span {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 200%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 下半部分 - 旧数字（背景层） */
+        .digit-lower {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 50%;
+            overflow: hidden;
+            background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
+            border: 2px solid #333;
+            border-radius: 0 0 20px 20px;
+            border-top: 1px solid #000;
+            z-index: 1;
+        }
+
+        .digit-lower span {
+            position: absolute;
+            top: -100%;
+            left: 0;
+            width: 100%;
+            height: 200%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 翻转层 - 上半（旧数字，向下翻） */
+        .flip-upper {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            height: 50%;
+            overflow: hidden;
+            background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
+            border: 2px solid #333;
+            border-radius: 20px 20px 0 0;
+            border-bottom: 1px solid #000;
+            transform-origin: bottom;
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+            z-index: 2;
+        }
+
+        .flip-upper span {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 200%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .flip-upper.flipping {
+            animation: flipDown 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+
+        @keyframes flipDown {
+            from {
+                transform: rotateX(0deg);
+            }
+            to {
+                transform: rotateX(-180deg);
+            }
+        }
+
+        /* 翻转层 - 下半（新数字，从上翻下） */
+        .flip-lower {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 50%;
+            overflow: hidden;
+            background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
+            border: 2px solid #333;
+            border-radius: 0 0 20px 20px;
+            border-top: 1px solid #000;
+            transform-origin: top;
+            backface-visibility: hidden;
+            transform: rotateX(180deg);
+            z-index: 3;
+        }
+
+        .flip-lower span {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 200%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: rotateX(180deg) scaleY(-1);
+        }
+
+        .flip-lower.flipping {
+            animation: flipUp 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+
+        @keyframes flipUp {
+            from {
+                transform: rotateX(180deg);
+            }
+            to {
+                transform: rotateX(0deg);
+            }
+        }
+
+        .time-label {
+            font-size: 1.2rem;
+            color: #666;
+            letter-spacing: 2px;
+        }
+
+        /* 烟花效果 */
+        .firework {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            animation: firework 1.5s ease-out forwards;
+        }
+
+        @keyframes firework {
+            0% {
+                transform: translate(0, 0);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty));
+                opacity: 0;
+            }
+        }
+
+        /* 粒子背景 */
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: float 20s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(50px);
+                opacity: 0;
+            }
+        }
+
+        /* 新年祝福 */
+        .celebration {
+            position: absolute;
+            top: 15%;
             left: 50%;
             transform: translate(-50%, -50%);
-            z-index: 10;
-            text-align: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.8s ease;
-        }
-
-        #celebration.show {
-            opacity: 1;
-        }
-
-        #celebration .year {
-            font-size: clamp(80px, 15vw, 200px);
-            font-weight: 900;
-            background: linear-gradient(135deg, #ffd700 0%, #ffaa00 30%, #ff6600 60%, #ff3366 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 0 60px rgba(255, 170, 0, 0.5);
-            filter: drop-shadow(0 0 30px rgba(255, 150, 0, 0.4));
-            animation: yearPulse 2s ease-in-out infinite;
-            letter-spacing: 10px;
-        }
-
-        #celebration .greeting {
-            font-size: clamp(40px, 8vw, 100px);
-            font-weight: 700;
-            background: linear-gradient(90deg, #fff 0%, #ffd700 50%, #fff 100%);
+            font-size: 5rem;
+            font-weight: bold;
+            background: linear-gradient(90deg, #ff6b6b, #ffd93d, #6bcf7f, #4d96ff, #ff61d8);
             background-size: 200% 100%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: shimmer 3s linear infinite;
-            margin-top: 20px;
-            letter-spacing: 15px;
+            animation: celebrate 10s ease-out forwards, shimmer 2s linear infinite;
+            z-index: 100;
+            opacity: 0;
+            text-shadow: 0 0 40px rgba(255, 255, 255, 0.8);
+            letter-spacing: 8px;
         }
 
-        @keyframes yearPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.02); }
+        @keyframes celebrate {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            10% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+            90% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(1);
+            }
         }
 
         @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
+            0% {
+                background-position: 0% 50%;
+            }
+            100% {
+                background-position: 200% 50%;
+            }
         }
 
-        /* 日期显示样式 */
-        #dateDisplay {
-            position: fixed;
-            top: calc(50% - 120px);
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            font-size: clamp(32px, 6vw, 60px);
-            font-weight: 600;
-            letter-spacing: 12px;
-            background: linear-gradient(
-                90deg,
-                rgba(255,255,255,0.6) 0%,
-                rgba(255,255,255,0.9) 20%,
-                rgba(255,215,180,1) 50%,
-                rgba(255,255,255,0.9) 80%,
-                rgba(255,255,255,0.6) 100%
-            );
-            background-size: 200% 100%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: dateShimmer 6s ease-in-out infinite;
-            filter: drop-shadow(0 0 15px rgba(255,220,180,0.3));
-            transition: opacity 0.5s ease;
-        }
-
-        @keyframes dateShimmer {
-            0%, 100% { background-position: 200% 0; }
-            50% { background-position: -200% 0; }
+        .glow {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background: radial-gradient(circle, rgba(255,107,107,0.3) 0%, transparent 70%);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
         }
     </style>
 </head>
 <body>
-    <canvas id="canvas"></canvas>
+    <div class="date-header" id="dateHeader">2025年12月31日 星期三</div>
 
-    <!-- 倒计时日期显示 -->
-    <div id="dateDisplay">2025年12月31日</div>
+    <div class="countdown-container">
+        <div class="time-unit">
+            <div class="flip-clock" id="hours-clock"></div>
+            <div class="time-label">时</div>
+        </div>
 
-    <div id="celebration">
-        <div class="year">2026</div>
-        <div class="greeting">新年快乐</div>
+        <div class="time-unit">
+            <div class="flip-clock" id="minutes-clock"></div>
+            <div class="time-label">分</div>
+        </div>
+
+        <div class="time-unit">
+            <div class="flip-clock" id="seconds-clock"></div>
+            <div class="time-label">秒</div>
+        </div>
     </div>
 
+    <div class="glow" id="glow"></div>
+
     <script>
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        const celebrationEl = document.getElementById('celebration');
-        const dateDisplayEl = document.getElementById('dateDisplay');
-
-        let W, H;
-        let phase = 'countdown';
-        let lastSec = -1;
-        let needTransition = false;
-        let currentDateStr = '';
-        let currentTimeStr = '';
-
-        function resize() {
-            W = window.innerWidth;
-            H = window.innerHeight;
-            canvas.width = W;
-            canvas.height = H;
-        }
-        resize();
-        window.addEventListener('resize', resize);
-
-        // ========== 配置 ==========
-        const TIME_SPACING = 3;
-        const TIME_SIZE = 1.5;
-        const EXPLODE_FORCE = 2.5;
-        const LERP_SPEED = 0.18;
-
-        let simTime = 50;
-        let lastTime = performance.now();
-
-        // ========== 粒子系统 ==========
-        const timeParticles = [];
-        const freeParticles = [];
-
-        function createParticle(x, y, tx, ty, size) {
-            return {
-                x, y, tx, ty,
-                vx: 0, vy: 0,
-                size: size + Math.random() * 0.3,
-                exploding: false,
-                free: false,
-                life: 1
-            };
-        }
-
-        function updateParticle(p, lerp = LERP_SPEED) {
-            if (p.free) {
-                p.x += p.vx;
-                p.y += p.vy;
-                p.vy += 0.02;
-                p.life -= 0.006;
-                return p.life > 0;
+        class FlipClock {
+            constructor(element, initialValue) {
+                this.element = element;
+                this.currentValue = initialValue;
+                this.isFlipping = false;
+                this.init();
             }
-            if (p.exploding) {
-                p.x += p.vx;
-                p.y += p.vy;
-                p.vx *= 0.93;
-                p.vy *= 0.93;
-                if (Math.abs(p.vx) < 0.08 && Math.abs(p.vy) < 0.08) {
-                    p.exploding = false;
-                }
-            } else {
-                p.x += (p.tx - p.x) * lerp;
-                p.y += (p.ty - p.y) * lerp;
+
+            init() {
+                this.element.innerHTML = `
+                    <div class="digit-upper"><span>${this.currentValue}</span></div>
+                    <div class="digit-lower"><span>${this.currentValue}</span></div>
+                    <div class="flip-upper"><span>${this.currentValue}</span></div>
+                    <div class="flip-lower"><span>${this.currentValue}</span></div>
+                `;
+
+                this.digitUpper = this.element.querySelector('.digit-upper span');
+                this.digitLower = this.element.querySelector('.digit-lower span');
+                this.flipUpper = this.element.querySelector('.flip-upper');
+                this.flipUpperSpan = this.element.querySelector('.flip-upper span');
+                this.flipLower = this.element.querySelector('.flip-lower');
+                this.flipLowerSpan = this.element.querySelector('.flip-lower span');
             }
-            return true;
-        }
 
-        function drawParticle(p, color = '#fff') {
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-            ctx.fillStyle = p.free ? `rgba(255,255,255,${p.life})` : color;
-            ctx.fill();
-        }
+            flipTo(newValue) {
+                if (this.isFlipping || newValue === this.currentValue) return;
 
-        function explodeParticle(p) {
-            p.exploding = true;
-            const a = Math.random() * Math.PI * 2;
-            const f = EXPLODE_FORCE + Math.random() * 2;
-            p.vx = Math.cos(a) * f;
-            p.vy = Math.sin(a) * f;
-        }
+                this.isFlipping = true;
 
-        // ========== 文字转位置 ==========
-        function getPositions(text, fontSize, cx, cy, spacing) {
-            const offscreen = document.createElement('canvas');
-            const octx = offscreen.getContext('2d');
+                // 设置新值
+                this.digitUpper.textContent = newValue;
+                this.flipLowerSpan.textContent = newValue;
 
-            octx.font = `bold ${fontSize}px Arial, sans-serif`;
-            const m = octx.measureText(text);
-            const tw = Math.ceil(m.width) + 20;
-            const th = fontSize + 20;
+                // 移除之前的动画
+                this.flipUpper.classList.remove('flipping');
+                this.flipLower.classList.remove('flipping');
 
-            offscreen.width = tw;
-            offscreen.height = th;
+                // 触发重排
+                void this.flipUpper.offsetWidth;
 
-            octx.font = `bold ${fontSize}px Arial, sans-serif`;
-            octx.fillStyle = '#fff';
-            octx.textAlign = 'center';
-            octx.textBaseline = 'middle';
-            octx.fillText(text, tw / 2, th / 2);
+                // 添加翻转动画
+                this.flipUpper.classList.add('flipping');
+                this.flipLower.classList.add('flipping');
 
-            const data = octx.getImageData(0, 0, tw, th).data;
-            const result = [];
-            const ox = cx - tw / 2;
-            const oy = cy - th / 2;
+                // 动画结束后更新
+                setTimeout(() => {
+                    this.currentValue = newValue;
+                    this.digitLower.textContent = newValue;
+                    this.flipUpperSpan.textContent = newValue;
 
-            for (let y = 0; y < th; y += spacing) {
-                for (let x = 0; x < tw; x += spacing) {
-                    const i = (y * tw + x) * 4;
-                    if (data[i + 3] > 100) {
-                        result.push({ x: ox + x, y: oy + y });
-                    }
-                }
-            }
-            return result;
-        }
-
-        // ========== 年月日（CSS文字） ==========
-        function updateDateDisplay() {
-            const dateStr = simTime < 60 ? '2025年12月31日' : '2026年1月1日';
-            if (dateStr !== currentDateStr) {
-                currentDateStr = dateStr;
-                dateDisplayEl.textContent = dateStr;
+                    this.flipUpper.classList.remove('flipping');
+                    this.flipLower.classList.remove('flipping');
+                    this.isFlipping = false;
+                }, 600);
             }
         }
 
-        // ========== 时分秒（动态） ==========
-        function setTimeText(text, explode) {
-            const fontSize = Math.min(W / 7, 120);
-            const positions = getPositions(text, fontSize, W / 2, H / 2 + 40, TIME_SPACING);
+        let currentTime = new Date('2025-12-31T23:59:50');
+        const endTime = new Date('2026-01-01T00:01:00');
+        let isNewYear = false;
 
-            if (timeParticles.length === 0 || !explode) {
-                timeParticles.length = 0;
-                positions.forEach(pos => {
-                    const p = createParticle(
-                        W / 2 + (Math.random() - 0.5) * 50,
-                        H / 2 + (Math.random() - 0.5) * 50,
-                        pos.x, pos.y, TIME_SIZE
-                    );
-                    timeParticles.push(p);
-                });
-            } else {
-                timeParticles.forEach(p => explodeParticle(p));
+        // 初始化翻牌时钟
+        const hoursFlip = new FlipClock(document.getElementById('hours-clock'), '23');
+        const minutesFlip = new FlipClock(document.getElementById('minutes-clock'), '59');
+        const secondsFlip = new FlipClock(document.getElementById('seconds-clock'), '50');
 
-                while (timeParticles.length < positions.length) {
-                    const p = createParticle(W / 2, H / 2 + 40, 0, 0, TIME_SIZE);
-                    timeParticles.push(p);
-                }
-                while (timeParticles.length > positions.length) {
-                    const p = timeParticles.pop();
-                    p.free = true;
-                    p.vx = (Math.random() - 0.5) * 3;
-                    p.vy = -Math.random() * 2 - 1;
-                    freeParticles.push(p);
-                }
-
-                positions.forEach((pos, i) => {
-                    timeParticles[i].tx = pos.x;
-                    timeParticles[i].ty = pos.y;
-                });
-            }
-            currentTimeStr = text;
-        }
-
-        function explodeAllCountdown() {
-            while (timeParticles.length > 0) {
-                const p = timeParticles.pop();
-                p.free = true;
-                const a = Math.random() * Math.PI * 2;
-                p.vx = Math.cos(a) * (2 + Math.random() * 3);
-                p.vy = Math.sin(a) * (2 + Math.random() * 3);
-                freeParticles.push(p);
-            }
-            // 隐藏日期显示
-            dateDisplayEl.style.opacity = '0';
-        }
-
-        function formatTimeOnly(sec) {
-            if (sec < 60) {
-                return `23:59:${String(sec).padStart(2, '0')}`;
-            } else {
-                return `00:00:${String(sec - 60).padStart(2, '0')}`;
+        // 创建背景粒子
+        function createParticles() {
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                document.body.appendChild(particle);
             }
         }
 
-        // ========== 星空 ==========
-        const stars = [];
-        for (let i = 0; i < 120; i++) {
-            stars.push({
-                x: Math.random(), y: Math.random(),
-                s: Math.random() * 1.5,
-                p: Math.random() * Math.PI * 2
-            });
+        // 创建烟花效果
+        function createFirework(x, y) {
+            const colors = ['#ff6b6b', '#ffd93d', '#6bcf7f', '#4d96ff', '#ff61d8'];
+            const particleCount = 50;
+
+            for (let i = 0; i < particleCount; i++) {
+                const firework = document.createElement('div');
+                firework.className = 'firework';
+                firework.style.left = x + 'px';
+                firework.style.top = y + 'px';
+                firework.style.background = colors[Math.floor(Math.random() * colors.length)];
+
+                const angle = (Math.PI * 2 * i) / particleCount;
+                const velocity = 100 + Math.random() * 100;
+                const tx = Math.cos(angle) * velocity;
+                const ty = Math.sin(angle) * velocity;
+
+                firework.style.setProperty('--tx', tx + 'px');
+                firework.style.setProperty('--ty', ty + 'px');
+
+                document.body.appendChild(firework);
+
+                setTimeout(() => firework.remove(), 1500);
+            }
         }
 
-        function drawStars() {
-            stars.forEach(st => {
-                st.p += 0.008;
-                const b = 0.15 + Math.sin(st.p) * 0.25;
-                ctx.beginPath();
-                ctx.arc(st.x * W, st.y * H, st.s, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255,255,255,${b})`;
-                ctx.fill();
-            });
-        }
+        // 显示新年祝福
+        function showCelebration() {
+            const celebration = document.createElement('div');
+            celebration.className = 'celebration';
+            celebration.textContent = '🎊 新年快乐 2026 🎊';
+            document.body.appendChild(celebration);
 
-        // ========== 烟花系统 ==========
-        const fireworks = [];
+            setTimeout(() => celebration.remove(), 10000);
 
-        function addFirework() {
-            const colors = [
-                'rgba(255,100,100,1)',
-                'rgba(255,200,100,1)',
-                'rgba(255,255,150,1)',
-                'rgba(150,255,150,1)',
-                'rgba(150,200,255,1)',
-                'rgba(255,150,255,1)',
-                'rgba(255,255,255,1)',
+            // 铺满全屏的烟花，持续10秒，20批次
+            const fireworkBatches = [
+                // 第1波 - 顶部
+                [
+                    { x: window.innerWidth * 0.1, y: window.innerHeight * 0.15 },
+                    { x: window.innerWidth * 0.3, y: window.innerHeight * 0.1 },
+                    { x: window.innerWidth * 0.5, y: window.innerHeight * 0.08 },
+                    { x: window.innerWidth * 0.7, y: window.innerHeight * 0.1 },
+                    { x: window.innerWidth * 0.9, y: window.innerHeight * 0.15 }
+                ],
+                // 第2波 - 左右两侧
+                [
+                    { x: window.innerWidth * 0.05, y: window.innerHeight * 0.3 },
+                    { x: window.innerWidth * 0.15, y: window.innerHeight * 0.4 },
+                    { x: window.innerWidth * 0.85, y: window.innerHeight * 0.4 },
+                    { x: window.innerWidth * 0.95, y: window.innerHeight * 0.3 }
+                ],
+                // 第3波 - 中上部
+                [
+                    { x: window.innerWidth * 0.2, y: window.innerHeight * 0.25 },
+                    { x: window.innerWidth * 0.4, y: window.innerHeight * 0.22 },
+                    { x: window.innerWidth * 0.6, y: window.innerHeight * 0.22 },
+                    { x: window.innerWidth * 0.8, y: window.innerHeight * 0.25 }
+                ],
+                // 第4波 - 中部
+                [
+                    { x: window.innerWidth * 0.25, y: window.innerHeight * 0.45 },
+                    { x: window.innerWidth * 0.5, y: window.innerHeight * 0.4 },
+                    { x: window.innerWidth * 0.75, y: window.innerHeight * 0.45 }
+                ],
+                // 第5波 - 中下部
+                [
+                    { x: window.innerWidth * 0.15, y: window.innerHeight * 0.6 },
+                    { x: window.innerWidth * 0.35, y: window.innerHeight * 0.55 },
+                    { x: window.innerWidth * 0.65, y: window.innerHeight * 0.55 },
+                    { x: window.innerWidth * 0.85, y: window.innerHeight * 0.6 }
+                ],
+                // 第6波 - 下部
+                [
+                    { x: window.innerWidth * 0.1, y: window.innerHeight * 0.75 },
+                    { x: window.innerWidth * 0.3, y: window.innerHeight * 0.7 },
+                    { x: window.innerWidth * 0.7, y: window.innerHeight * 0.7 },
+                    { x: window.innerWidth * 0.9, y: window.innerHeight * 0.75 }
+                ],
+                // 第7波 - 底部
+                [
+                    { x: window.innerWidth * 0.2, y: window.innerHeight * 0.85 },
+                    { x: window.innerWidth * 0.5, y: window.innerHeight * 0.8 },
+                    { x: window.innerWidth * 0.8, y: window.innerHeight * 0.85 }
+                ],
+                // 第8波 - 补充中间区域
+                [
+                    { x: window.innerWidth * 0.12, y: window.innerHeight * 0.5 },
+                    { x: window.innerWidth * 0.38, y: window.innerHeight * 0.35 },
+                    { x: window.innerWidth * 0.62, y: window.innerHeight * 0.35 },
+                    { x: window.innerWidth * 0.88, y: window.innerHeight * 0.5 }
+                ],
+                // 第9波 - 顶部右侧
+                [
+                    { x: window.innerWidth * 0.15, y: window.innerHeight * 0.12 },
+                    { x: window.innerWidth * 0.45, y: window.innerHeight * 0.15 },
+                    { x: window.innerWidth * 0.75, y: window.innerHeight * 0.12 }
+                ],
+                // 第10波 - 左侧补充
+                [
+                    { x: window.innerWidth * 0.08, y: window.innerHeight * 0.45 },
+                    { x: window.innerWidth * 0.18, y: window.innerHeight * 0.55 },
+                    { x: window.innerWidth * 0.92, y: window.innerHeight * 0.45 }
+                ],
+                // 第11波 - 中央区域
+                [
+                    { x: window.innerWidth * 0.35, y: window.innerHeight * 0.48 },
+                    { x: window.innerWidth * 0.5, y: window.innerHeight * 0.52 },
+                    { x: window.innerWidth * 0.65, y: window.innerHeight * 0.48 }
+                ],
+                // 第12波 - 对角线
+                [
+                    { x: window.innerWidth * 0.22, y: window.innerHeight * 0.18 },
+                    { x: window.innerWidth * 0.5, y: window.innerHeight * 0.45 },
+                    { x: window.innerWidth * 0.78, y: window.innerHeight * 0.72 }
+                ],
+                // 第13波 - 顶部补充
+                [
+                    { x: window.innerWidth * 0.25, y: window.innerHeight * 0.08 },
+                    { x: window.innerWidth * 0.55, y: window.innerHeight * 0.12 },
+                    { x: window.innerWidth * 0.85, y: window.innerHeight * 0.08 }
+                ],
+                // 第14波 - 中部散布
+                [
+                    { x: window.innerWidth * 0.32, y: window.innerHeight * 0.42 },
+                    { x: window.innerWidth * 0.68, y: window.innerHeight * 0.42 },
+                    { x: window.innerWidth * 0.5, y: window.innerHeight * 0.58 }
+                ],
+                // 第15波 - 下半部分
+                [
+                    { x: window.innerWidth * 0.15, y: window.innerHeight * 0.68 },
+                    { x: window.innerWidth * 0.42, y: window.innerHeight * 0.72 },
+                    { x: window.innerWidth * 0.85, y: window.innerHeight * 0.68 }
+                ],
+                // 第16波 - 边角补充
+                [
+                    { x: window.innerWidth * 0.07, y: window.innerHeight * 0.2 },
+                    { x: window.innerWidth * 0.93, y: window.innerHeight * 0.2 },
+                    { x: window.innerWidth * 0.5, y: window.innerHeight * 0.88 }
+                ],
+                // 第17波 - 中上散布
+                [
+                    { x: window.innerWidth * 0.28, y: window.innerHeight * 0.28 },
+                    { x: window.innerWidth * 0.55, y: window.innerHeight * 0.32 },
+                    { x: window.innerWidth * 0.72, y: window.innerHeight * 0.28 }
+                ],
+                // 第18波 - 中下散布
+                [
+                    { x: window.innerWidth * 0.18, y: window.innerHeight * 0.62 },
+                    { x: window.innerWidth * 0.48, y: window.innerHeight * 0.65 },
+                    { x: window.innerWidth * 0.82, y: window.innerHeight * 0.62 }
+                ],
+                // 第19波 - 底部散布
+                [
+                    { x: window.innerWidth * 0.12, y: window.innerHeight * 0.82 },
+                    { x: window.innerWidth * 0.38, y: window.innerHeight * 0.78 },
+                    { x: window.innerWidth * 0.88, y: window.innerHeight * 0.82 }
+                ],
+                // 第20波 - 最后补充
+                [
+                    { x: window.innerWidth * 0.3, y: window.innerHeight * 0.5 },
+                    { x: window.innerWidth * 0.5, y: window.innerHeight * 0.25 },
+                    { x: window.innerWidth * 0.7, y: window.innerHeight * 0.65 }
+                ]
             ];
-            fireworks.push({
-                x: Math.random() * W,
-                y: H + 10,
-                vy: -5 - Math.random() * 14,
-                color: colors[Math.floor(Math.random() * colors.length)],
-                done: false,
-                trail: [],
-                particles: []
-            });
-        }
 
-        function updateFireworks() {
-            for (let i = fireworks.length - 1; i >= 0; i--) {
-                const f = fireworks[i];
-
-                if (!f.done) {
-                    f.trail.push({ x: f.x, y: f.y, a: 1 });
-                    if (f.trail.length > 6) f.trail.shift();
-                    f.y += f.vy;
-                    f.vy += 0.06;
-
-                    if (f.vy >= 0) {
-                        f.done = true;
-                        const count = 80 + Math.floor(Math.random() * 60);
-                        for (let j = 0; j < count; j++) {
-                            const a = Math.random() * Math.PI * 2;
-                            const sp = 2 + Math.random() * 6;
-                            f.particles.push({
-                                x: f.x, y: f.y,
-                                vx: Math.cos(a) * sp,
-                                vy: Math.sin(a) * sp,
-                                life: 1,
-                                size: 2 + Math.random() * 2.5
-                            });
-                        }
-                    }
-                }
-
-                f.trail = f.trail.filter(t => { t.a -= 0.06; return t.a > 0; });
-
-                f.particles = f.particles.filter(p => {
-                    p.x += p.vx;
-                    p.y += p.vy;
-                    p.vy += 0.03;
-                    p.vx *= 0.98;
-                    p.vy *= 0.98;
-                    p.life -= 0.012;
-                    return p.life > 0;
-                });
-
-                if (f.done && f.trail.length === 0 && f.particles.length === 0) {
-                    fireworks.splice(i, 1);
-                }
-            }
-        }
-
-        function drawFireworks() {
-            fireworks.forEach(f => {
-                f.trail.forEach(t => {
-                    ctx.beginPath();
-                    ctx.arc(t.x, t.y, 1.5, 0, Math.PI * 2);
-                    ctx.fillStyle = f.color.replace('1)', `${t.a})`);
-                    ctx.fill();
-                });
-
-                if (!f.done) {
-                    ctx.beginPath();
-                    ctx.arc(f.x, f.y, 2, 0, Math.PI * 2);
-                    ctx.fillStyle = f.color;
-                    ctx.fill();
-                }
-
-                f.particles.forEach(p => {
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    ctx.fillStyle = f.color.replace('1)', `${p.life})`);
-                    ctx.fill();
-                });
-            });
-        }
-
-        // ========== 主逻辑 ==========
-        let fireworkTimer = 0;
-
-        function update(dt) {
-            simTime += dt / 1000;
-            if (simTime >= 120) simTime = 0;
-
-            const sec = Math.floor(simTime);
-            const ms = (simTime - sec) * 1000;
-            const isCountdown = sec < 60;
-
-            fireworkTimer += dt;
-
-            // 跨年
-            if (phase === 'countdown' && !isCountdown) {
-                phase = 'celebration';
-                explodeAllCountdown();
-                // 显示庆祝文字
+            fireworkBatches.forEach((batch, batchIndex) => {
                 setTimeout(() => {
-                    celebrationEl.classList.add('show');
-                }, 500);
-                // 大量烟花
-                for (let i = 0; i < 20; i++) {
-                    setTimeout(addFirework, i * 120);
-                }
-            }
-
-            // 循环回倒计时
-            if (phase === 'celebration' && isCountdown) {
-                phase = 'countdown';
-                lastSec = -1;
-                currentDateStr = '';
-                celebrationEl.classList.remove('show');
-
-                setTimeout(() => {
-                    dateDisplayEl.style.opacity = '1';
-                    updateDateDisplay();
-                    setTimeText(formatTimeOnly(sec), false);
-                }, 400);
-            }
-
-            if (phase === 'countdown') {
-                updateDateDisplay();
-
-                const timeStr = formatTimeOnly(sec);
-
-                if (timeParticles.length === 0) {
-                    setTimeText(timeStr, false);
-                    currentTimeStr = timeStr;
-                    lastSec = sec;
-                }
-
-                if (sec !== lastSec) {
-                    lastSec = sec;
-                    needTransition = true;
-                }
-
-                if (needTransition && ms >= 800 && currentTimeStr !== timeStr) {
-                    needTransition = false;
-                    setTimeText(timeStr, true);
-                }
-
-                // 倒计时烟花
-                if (fireworkTimer > 800) {
-                    fireworkTimer = 0;
-                    if (sec >= 50 && Math.random() < 0.6) {
-                        addFirework();
-                    } else if (Math.random() < 0.15) {
-                        addFirework();
-                    }
-                }
-            }
-
-            if (phase === 'celebration') {
-                // 庆祝烟花（很多）
-                if (fireworkTimer > 150) {
-                    fireworkTimer = 0;
-                    if (Math.random() < 0.8) {
-                        addFirework();
-                    }
-                }
-            }
-        }
-
-        // ========== 渲染 ==========
-        function loop(now) {
-            const dt = now - lastTime;
-            lastTime = now;
-
-            ctx.fillStyle = '#000';
-            ctx.fillRect(0, 0, W, H);
-
-            drawStars();
-            updateFireworks();
-            drawFireworks();
-
-            for (let i = freeParticles.length - 1; i >= 0; i--) {
-                const p = freeParticles[i];
-                if (!updateParticle(p)) {
-                    freeParticles.splice(i, 1);
-                } else {
-                    drawParticle(p);
-                }
-            }
-
-            timeParticles.forEach(p => {
-                updateParticle(p);
-                drawParticle(p, '#fff');
+                    batch.forEach((pos, index) => {
+                        setTimeout(() => createFirework(pos.x, pos.y), index * 80);
+                    });
+                }, batchIndex * 500);
             });
-
-            update(dt);
-            requestAnimationFrame(loop);
         }
 
-        requestAnimationFrame(loop);
+        // 更新倒计时
+        function updateCountdown() {
+            const now = currentTime;
+
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+
+            // 翻牌到新值
+            hoursFlip.flipTo(hours);
+            minutesFlip.flipTo(minutes);
+            secondsFlip.flipTo(seconds);
+
+            // 更新日期头部
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1;
+            const day = now.getDate();
+            const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+            const weekday = weekdays[now.getDay()];
+            document.getElementById('dateHeader').textContent =
+                `${year}年${month}月${day}日 ${weekday}`;
+
+            // 检查是否到达00:00:00
+            if (hours === '00' && minutes === '00' && seconds === '00' && !isNewYear) {
+                isNewYear = true;
+                document.getElementById('glow').style.opacity = '1';
+                showCelebration();
+                setTimeout(() => {
+                    document.getElementById('glow').style.opacity = '0';
+                }, 3000);
+            }
+
+            // 增加一秒
+            currentTime = new Date(currentTime.getTime() + 1000);
+
+            // 检查是否需要重置
+            if (currentTime > endTime) {
+                currentTime = new Date('2025-12-31T23:59:50');
+                isNewYear = false;
+            }
+        }
+
+        // 初始化
+        createParticles();
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
     </script>
 </body>
 </html>
